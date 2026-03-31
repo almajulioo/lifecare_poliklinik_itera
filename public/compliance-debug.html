@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LifeCare Compliance Debug</title>
+</head>
+<body>
+    <h1>LifeCare Compliance Debug</h1>
+    
+    <h2>Testing Compliance Stats API</h2>
+    
+    <script>
+        async function testAPI() {
+            try {
+                const response = await fetch('/app/statistics/summary', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                const data = await response.json();
+                document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (err) {
+                document.getElementById('result').innerHTML = '<p style="color: red;">Error: ' + err.message + '</p>';
+            }
+        }
+        
+        window.onload = function() {
+            testAPI();
+        };
+    </script>
+    
+    <div id="result">Loading...</div>
+</body>
+</html>

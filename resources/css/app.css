@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* Safe Area Support for Notch Devices */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+
+  header {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+
+  .pt-safe {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+
+  .safe-bottom {
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Offline Styling */
+body[data-offline="true"] {
+  @apply opacity-95;
+}
+
+#offline-indicator {
+  @apply sticky top-0 z-50 bg-yellow-50 border-b border-yellow-200 px-4 py-2 text-xs text-yellow-700;
+}
+
+#offline-warning {
+  @apply animate-pulse;
+}
+
+/* Queue Indicator Styling */
+#offline-queue-indicator {
+  @apply text-blue-700 bg-blue-100;
+}
+
+/* Mobile-first responsive */
+@media (max-width: 640px) {
+  main {
+    @apply py-4;
+  }
+}

@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Buat Jadwal Obat')
+@section('title', 'Buat Jadwal Pengingat Obat')
 
 @section('content')
 <div class="p-8">
@@ -8,7 +8,7 @@
         <!-- Header -->
         <div class="mb-8">
             <a href="{{ route('admin.schedules.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-semibold">← Kembali</a>
-            <h1 class="text-3xl font-bold text-gray-900 mt-2">Buat Jadwal Obat</h1>
+            <h1 class="text-3xl font-bold text-gray-900 mt-2">Buat Jadwal Pengingat Obat</h1>
         </div>
 
         <!-- Error Messages -->
@@ -238,109 +238,137 @@
 
 <script>
 function updateTimeInputs() {
-    const frequency = document.getElementById('frequency').value;
-    const container = document.getElementById('time-inputs-container');
-    const oldTimes = Array.from(document.querySelectorAll('#time-inputs-container input[type="time"]')).map(input => input.value);
-    
-    // Determine number of inputs based on frequency
-    let numInputs = 1;
-    let labels = {};
-    
-    switch(frequency) {
-        case '1x sehari':
-        case 'saat diperlukan':
-            numInputs = 1;
-            labels = { 1: 'Jam ke 1' };
-            break;
-        case '2x sehari':
-        case 'setiap 12 jam':
-            numInputs = 2;
-            labels = { 1: 'Jam ke 1 (Pagi)', 2: 'Jam ke 2 (Sore)' };
-            break;
-        case '3x sehari':
-        case 'setiap 8 jam':
-            numInputs = 3;
-            labels = { 1: 'Jam ke 1 (Pagi)', 2: 'Jam ke 2 (Siang)', 3: 'Jam ke 3 (Malam)' };
-            break;
-        case '4x sehari':
-        case 'setiap 6 jam':
-            numInputs = 4;
-            labels = { 1: 'Jam ke 1 (Pagi)', 2: 'Jam ke 2 (Siang)', 3: 'Jam ke 3 (Sore)', 4: 'Jam ke 4 (Malam)' };
-            break;
-        case 'setiap 4 jam':
-            numInputs = 6;
-            labels = { 1: 'Jam ke 1', 2: 'Jam ke 2', 3: 'Jam ke 3', 4: 'Jam ke 4', 5: 'Jam ke 5', 6: 'Jam ke 6' };
-            break;
-        default:
-            numInputs = 1;
-            labels = { 1: 'Jam ke 1' };
-    }
-    
-    // Clear container
-    container.innerHTML = '';
-    
-    // Create new inputs
-    for (let i = 1; i <= numInputs; i++) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'time-input-wrapper';
+    try {
+        const frequency = document.getElementById('frequency').value;
+        const container = document.getElementById('time-inputs-container');
         
-        const label = document.createElement('label');
-        label.htmlFor = `time_${i}`;
-        label.className = 'block text-xs text-gray-600 mb-1';
-        label.textContent = labels[i] || `Jam ke ${i}`;
-        
-        const input = document.createElement('input');
-        input.type = 'time';
-        input.id = `time_${i}`;
-        input.name = 'times[]';
-        input.className = 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500';
-        input.required = true;
-        
-        // Restore old values if they exist
-        if (oldTimes[i - 1]) {
-            input.value = oldTimes[i - 1];
+        if (!container) {
+            console.error('Time inputs container not found');
+            return;
         }
         
-        wrapper.appendChild(label);
-        wrapper.appendChild(input);
-        container.appendChild(wrapper);
+        // Store old time values before clearing
+        const oldTimes = Array.from(
+            container.querySelectorAll('input[type="time"]')
+        ).map(input => input.value).filter(val => val);
+        
+        // Determine number of inputs based on frequency
+        let numInputs = 1;
+        let labels = {};
+        
+        switch(frequency) {
+            case '1x sehari':
+            case 'saat diperlukan':
+                numInputs = 1;
+                labels = { 1: 'Jam ke 1' };
+                break;
+            case '2x sehari':
+            case 'setiap 12 jam':
+                numInputs = 2;
+                labels = { 1: 'Jam ke 1 (Pagi)', 2: 'Jam ke 2 (Sore)' };
+                break;
+            case '3x sehari':
+            case 'setiap 8 jam':
+                numInputs = 3;
+                labels = { 1: 'Jam ke 1 (Pagi)', 2: 'Jam ke 2 (Siang)', 3: 'Jam ke 3 (Malam)' };
+                break;
+            case '4x sehari':
+            case 'setiap 6 jam':
+                numInputs = 4;
+                labels = { 1: 'Jam ke 1 (Pagi)', 2: 'Jam ke 2 (Siang)', 3: 'Jam ke 3 (Sore)', 4: 'Jam ke 4 (Malam)' };
+                break;
+            case 'setiap 4 jam':
+                numInputs = 6;
+                labels = { 1: 'Jam ke 1', 2: 'Jam ke 2', 3: 'Jam ke 3', 4: 'Jam ke 4', 5: 'Jam ke 5', 6: 'Jam ke 6' };
+                break;
+            default:
+                numInputs = 1;
+                labels = { 1: 'Jam ke 1' };
+        }
+        
+        // Clear container
+        container.innerHTML = '';
+        
+        // Create new inputs
+        for (let i = 1; i <= numInputs; i++) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'time-input-wrapper';
+            
+            const label = document.createElement('label');
+            label.htmlFor = `time_${i}`;
+            label.className = 'block text-xs text-gray-600 mb-1';
+            label.textContent = labels[i] || `Jam ke ${i}`;
+            
+            const input = document.createElement('input');
+            input.type = 'time';
+            input.id = `time_${i}`;
+            input.name = 'times[]';
+            input.className = 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500';
+            input.required = true;
+            
+            // Restore old values if they exist
+            if (oldTimes && oldTimes.length > 0 && oldTimes[i - 1]) {
+                input.value = oldTimes[i - 1];
+            }
+            
+            wrapper.appendChild(label);
+            wrapper.appendChild(input);
+            container.appendChild(wrapper);
+        }
+    } catch (error) {
+        console.error('Error updating time inputs:', error);
     }
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    const frequency = document.getElementById('frequency').value;
-    if (frequency) {
-        updateTimeInputs();
+    try {
+        const frequency = document.getElementById('frequency');
+        if (frequency && frequency.value) {
+            updateTimeInputs();
+        }
+        
+        // Calculate duration on page load if dates are already filled
+        calculateDuration();
+    } catch (error) {
+        console.error('Error initializing form:', error);
     }
-    
-    // Calculate duration on page load if dates are already filled
-    calculateDuration();
 });
 
 function calculateDuration() {
-    const startDateInput = document.getElementById('start_date').value;
-    const endDateInput = document.getElementById('end_date').value;
-    const durationField = document.getElementById('duration_days');
-    
-    if (startDateInput && endDateInput) {
-        // Convert date strings to Date objects
-        const startDate = new Date(startDateInput);
-        const endDate = new Date(endDateInput);
+    try {
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+        const durationField = document.getElementById('duration_days');
         
-        // Calculate difference in milliseconds
-        const timeDiff = endDate - startDate;
-        
-        // Convert to days (1 day = 24 * 60 * 60 * 1000 milliseconds)
-        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 to include both start and end day
-        
-        // Only set if positive
-        if (daysDiff > 0) {
-            durationField.value = daysDiff;
+        if (!startDateInput || !endDateInput || !durationField) {
+            return;
         }
-    } else if (startDateInput && !endDateInput) {
-        // Clear duration if only start date is selected
-        durationField.value = '';
+        
+        const startValue = startDateInput.value;
+        const endValue = endDateInput.value;
+        
+        if (startValue && endValue) {
+            // Convert date strings to Date objects
+            const startDate = new Date(startValue);
+            const endDate = new Date(endValue);
+            
+            // Calculate difference in milliseconds
+            const timeDiff = endDate - startDate;
+            
+            // Convert to days (1 day = 24 * 60 * 60 * 1000 milliseconds)
+            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 to include both start and end day
+            
+            // Only set if positive
+            if (daysDiff > 0) {
+                durationField.value = daysDiff;
+            }
+        } else if (startValue && !endValue) {
+            // Clear duration if only start date is selected
+            durationField.value = '';
+        }
+    } catch (error) {
+        console.error('Error calculating duration:', error);
     }
 }
 </script>

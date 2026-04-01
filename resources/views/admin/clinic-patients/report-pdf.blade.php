@@ -250,7 +250,7 @@
 
     <!-- Header -->
     <div class="header">
-        <h1>📋 Laporan Kunjungan Pasien Poliklinik</h1>
+        <h1>Laporan Kunjungan Pasien Poliklinik ITERA</h1>
         <div class="subtitle">Periode: {{ $displayMonth }}</div>
     </div>
 
@@ -266,13 +266,13 @@
         </div>
         <div class="info-row">
             <span class="info-label">Lokasi:</span>
-            <span class="info-value">Poliklinik LifeCare</span>
+            <span class="info-value">Poliklinik ITERA</span>
         </div>
     </div>
 
     <!-- Summary Statistics -->
     <div class="summary">
-        <h3>📊 Ringkasan Data</h3>
+        <h3>Ringkasan Data</h3>
         <div class="summary-text">
             <p style="margin-bottom: 10px;">
                 <strong>Total Kunjungan:</strong> 

@@ -1,20 +1,40 @@
 <x-guest-layout>
-    <form method="POST" action="{{ route('admin.login.submit') }}">
+    <form method="POST" action="{{ route('admin.login.submit') }}" class="space-y-6 p-6">
         @csrf
 
+        <!-- Email Field -->
         <div>
             <x-input-label for="email" value="Email Admin" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus />
+            <x-text-input 
+                id="email" 
+                class="block mt-2 w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition" 
+                type="email" 
+                name="email" 
+                :value="old('email')" 
+                required 
+                autofocus 
+                placeholder="Masukkan email admin"
+            />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <div class="mt-4">
+        <!-- Password Field -->
+        <div>
             <x-input-label for="password" value="Password" />
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required />
+            <x-text-input 
+                id="password" 
+                class="block mt-2 w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition" 
+                type="password" 
+                name="password" 
+                required 
+                placeholder="Masukkan password"
+            />
+            <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
+        <!-- Login Button -->
+        <div class="pt-2">
+            <x-primary-button class="w-full justify-center py-2.5 font-semibold">
                 Login Admin
             </x-primary-button>
         </div>

@@ -21,6 +21,8 @@ class User extends Authenticatable
         'password',
         'notification_preferences',
         'timezone',
+        'medical_conditions',
+        'notes',
     ];
 
     protected $hidden = [
@@ -34,6 +36,9 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'notification_preferences' => 'array',
+            'medical_conditions' => 'array',
+            'medical_conditions' => 'array',
+            'medical_conditions' => 'array',
         ];
     }
 

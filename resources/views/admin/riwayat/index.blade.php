@@ -57,27 +57,36 @@
     </div>
 
     <!-- Search and Filter -->
-    <div class="flex gap-4">
+    <form method="GET" class="flex gap-4 items-end">
         <div class="flex-1">
             <input 
-                type="text" 
+                type="text"
+                name="search"
+                value="{{ $search ?? '' }}"
                 placeholder="Cari berdasarkan nama pasien, obat, atau waktu..."
                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             />
         </div>
         <input 
-            type="text" 
+            type="text"
+            name="time"
             placeholder="hh/mm"
             class="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm w-24"
         />
-        <select class="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 text-sm">
-            <option>Status</option>
-            <option value="taken">Diminum</option>
-            <option value="pending">Tertunda</option>
-            <option value="delayed">Terlambat</option>
-            <option value="missed">Terlewat</option>
+        <select name="status" class="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 text-sm">
+            <option value="all">Status</option>
+            <option value="taken" {{ $status === 'taken' ? 'selected' : '' }}>Diminum</option>
+            <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>Tertunda</option>
+            <option value="delayed" {{ $status === 'delayed' ? 'selected' : '' }}>Terlambat</option>
+            <option value="missed" {{ $status === 'missed' ? 'selected' : '' }}>Terlewat</option>
         </select>
-    </div>
+        <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap">
+            Cari
+        </button>
+        <a href="{{ route('admin.riwayat.index') }}" class="px-6 py-2.5 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors font-medium whitespace-nowrap">
+            Reset
+        </a>
+    </form>
 
     <!-- Reminder Table -->
     <x-admin.card>
@@ -97,7 +106,18 @@
                         @forelse($logs as $log)
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-6 py-4 text-sm font-medium text-gray-900">
-                                    {{ $log->schedule->scheduled_time ? \Carbon\Carbon::parse($log->schedule->scheduled_time)->format('H:i') : '-' }}
+                                    @php
+                                        $times = $log->schedule->time ? explode(',', $log->schedule->time) : [];
+                                        $displayTime = count($times) > 0 ? trim($times[0]) : '-';
+                                        if ($displayTime !== '-') {
+                                            try {
+                                                $displayTime = \Carbon\Carbon::parse($displayTime)->format('H:i');
+                                            } catch (\Exception $e) {
+                                                $displayTime = '-';
+                                            }
+                                        }
+                                    @endphp
+                                    {{ $displayTime }}
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="text-sm">

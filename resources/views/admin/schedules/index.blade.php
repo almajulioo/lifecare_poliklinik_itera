@@ -25,6 +25,33 @@
         </a>
     </div>
 
+    <!-- Search Box -->
+    <div class="mb-6 bg-white rounded-lg shadow p-4">
+        <form method="GET" action="{{ route('admin.schedules.index') }}" class="flex gap-3">
+            <input
+                type="text"
+                name="search"
+                placeholder="Cari pasien berdasarkan nama atau ID..."
+                value="{{ request('search') }}"
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+            />
+            <button
+                type="submit"
+                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"
+            >
+                 Cari
+            </button>
+            @if(request('search'))
+                <a
+                    href="{{ route('admin.schedules.index') }}"
+                    class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-semibold transition"
+                >
+                    ✕ Reset
+                </a>
+            @endif
+        </form>
+    </div>
+
     <!-- Statistics Bar -->
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <div class="bg-blue-50 p-4 rounded-lg">
@@ -82,18 +109,32 @@
                             </td>
                             <td class="px-6 py-3 text-gray-900">
                                 @php
-                                    // Check if time is JSON (multiple times)
+                                    // Parse time in multiple formats
                                     $times = $schedule->time;
-                                    if (strpos($times, '[') === 0) {
-                                        // It's JSON
-                                        $timeArray = json_decode($times, true);
-                                        $timeDisplay = implode(', ', array_map(fn($t) => substr($t, 0, 5), $timeArray));
-                                    } else {
-                                        // It's a single time
-                                        $timeDisplay = \Carbon\Carbon::parse($times)->format('H:i');
+                                    $timeDisplay = 'N/A';
+                                    
+                                    if (!empty($times)) {
+                                        try {
+                                            // Check if it's JSON format
+                                            if (strpos($times, '[') === 0) {
+                                                $timeArray = json_decode($times, true);
+                                                if (is_array($timeArray)) {
+                                                    $timeDisplay = implode(', ', array_map(fn($t) => substr($t, 0, 5), $timeArray));
+                                                }
+                                            // Check if it's comma-separated
+                                            } elseif (strpos($times, ',') !== false) {
+                                                $timeArray = array_map('trim', explode(',', $times));
+                                                $timeDisplay = implode(', ', array_map(fn($t) => substr($t, 0, 5), $timeArray));
+                                            // Otherwise treat as single time
+                                            } else {
+                                                $timeDisplay = \Carbon\Carbon::parse($times)->format('H:i');
+                                            }
+                                        } catch (\Exception $e) {
+                                            $timeDisplay = $times;
+                                        }
                                     }
                                 @endphp
-                                {{ $timeDisplay ?? 'N/A' }}
+                                {{ $timeDisplay }}
                             </td>
                             <td class="px-6 py-3 text-sm text-gray-700">
                                 <span class="text-xs">{{ $schedule->start_date ?? 'N/A' }}</span><br>

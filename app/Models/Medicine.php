@@ -27,7 +27,6 @@ class Medicine extends Model
     {
         return $query->where(function ($q) {
             $q->where('source_type', 'ADMIN')
-              ->orWhere('source', 'resep')
               ->orWhereNull('source_type');
         })->whereNull('user_id');
     }

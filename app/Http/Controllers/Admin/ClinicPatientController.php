@@ -109,9 +109,42 @@ class ClinicPatientController extends Controller
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'status' => 'required|in:aktif,tidak_aktif',
+            'medical_conditions' => 'nullable|array',
+            'medical_conditions.*' => 'string|max:255',
+            'notes' => 'nullable|string',
         ]);
 
-        ClinicPatient::create($validated);
+        // Separate clinic patient data from user data
+        $clinicPatientData = $validated;
+        $medicalConditions = $validated['medical_conditions'] ?? null;
+        $notes = $validated['notes'] ?? null;
+        
+        unset($clinicPatientData['medical_conditions']);
+        unset($clinicPatientData['notes']);
+
+        // Create clinic patient
+        $patient = ClinicPatient::create($clinicPatientData);
+
+        // If user is selected, update their medical conditions
+        if ($validated['user_id']) {
+            $user = User::find($validated['user_id']);
+            $userData = [];
+            
+            if ($medicalConditions) {
+                // Filter out empty values
+                $userData['medical_conditions'] = array_filter($medicalConditions, function($val) {
+                    return !empty(trim($val));
+                });
+            }
+            
+            if ($notes) {
+                $userData['notes'] = $notes;
+            }
+            
+            if (!empty($userData)) {
+                $user->update($userData);
+            }
+        }
 
         return redirect()->route('admin.clinic-patients.index')
                         ->with('success', 'Pasien berhasil ditambahkan');
@@ -160,9 +193,42 @@ class ClinicPatientController extends Controller
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'status' => 'required|in:aktif,tidak_aktif',
+            'medical_conditions' => 'nullable|array',
+            'medical_conditions.*' => 'string|max:255',
+            'notes' => 'nullable|string',
         ]);
 
-        $clinicPatient->update($validated);
+        // Separate clinic patient data from user data
+        $clinicPatientData = $validated;
+        $medicalConditions = $validated['medical_conditions'] ?? null;
+        $notes = $validated['notes'] ?? null;
+        
+        unset($clinicPatientData['medical_conditions']);
+        unset($clinicPatientData['notes']);
+
+        // Update clinic patient
+        $clinicPatient->update($clinicPatientData);
+
+        // If user is selected, update their medical conditions
+        if ($validated['user_id']) {
+            $user = User::find($validated['user_id']);
+            $userData = [];
+            
+            if ($medicalConditions) {
+                // Filter out empty values
+                $userData['medical_conditions'] = array_filter($medicalConditions, function($val) {
+                    return !empty(trim($val));
+                });
+            }
+            
+            if ($notes) {
+                $userData['notes'] = $notes;
+            }
+            
+            if (!empty($userData)) {
+                $user->update($userData);
+            }
+        }
 
         return redirect()->route('admin.clinic-patients.index')
                         ->with('success', 'Pasien berhasil diperbarui');

@@ -21,21 +21,40 @@
             }
         </style>
     </head>
-    <body class="font-sans text-gray-900 antialiased bg-white">
-        <div class="min-h-screen flex flex-col items-center justify-start p-4 sm:p-0 sm:justify-center bg-white">
+    <body class="font-sans text-gray-900 antialiased">
+        <!-- Background Image with overlay for transparency -->
+        <div class="fixed inset-0 -z-10" style="
+            background-image: url('{{ asset('images/Drone-Itera.jpeg') }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        "></div>
+        
+        <!-- Semi-transparent overlay to control image brightness -->
+        <div class="fixed inset-0 -z-10" style="
+            background-color: rgba(0, 0, 0, 0.4);
+        "></div>
+
+        <div class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-0 relative z-10">
             <!-- Mobile Container -->
             <div class="w-full max-w-md">
                 <!-- Header with Logo -->
-                <div class="pt-6 pb-8 text-center">
+                <div class="pb-12 text-center">
                     <a href="/" class="inline-block">
-                        <div class="text-4xl font-bold tracking-tight">
-                            <span style="color: var(--primary-color);">LIFE</span><span style="color: #1a1a1a;">CARE</span><span style="color: var(--primary-color);">+</span>
+                        <div class="flex flex-col items-center gap-4">
+                            <!-- ITERA Logo -->
+                            <img src="{{ asset('images/logo-itera.png') }}" alt="ITERA Logo" class="h-24 w-auto">
+                            <!-- Poliklinik Text -->
+                            <div>
+                                <h1 class="text-4xl font-bold text-gray-800">POLIKLINIK ITERA</h1>
+                                <p class="text-base text-gray-600 mt-2">Institut Teknologi Sumatera</p>
+                            </div>
                         </div>
                     </a>
                 </div>
 
-                <!-- Content -->
-                <div class="bg-white">
+                <!-- Content with semi-transparent white background -->
+                <div class="bg-white bg-opacity-95 rounded-xl shadow-2xl overflow-hidden">
                     {{ $slot }}
                 </div>
             </div>

@@ -18,9 +18,19 @@ class AdminMedicationScheduleController extends Controller
     public function index()
     {
         try {
-            $schedules = MedicationSchedule::with(['user', 'medicine'])
-                ->orderBy('created_at', 'desc')
-                ->paginate(10);
+            $query = MedicationSchedule::with(['user', 'medicine'])
+                ->orderBy('created_at', 'desc');
+
+            // Apply search filter if search term provided
+            $search = request('search');
+            if ($search) {
+                $query->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('id', 'like', "%{$search}%");
+                });
+            }
+
+            $schedules = $query->paginate(10);
 
             return view('admin.schedules.index', compact('schedules'));
         } catch (\Exception $e) {

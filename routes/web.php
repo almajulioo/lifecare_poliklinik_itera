@@ -66,6 +66,58 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/history', [MedicationHistoryController::class, 'index'])
             ->name('history.index');
         
+        // DEBUG: Test history rendering
+        Route::get('/history-test', function () {
+            try {
+                return view('app.history.test', [
+                    'stats' => ['test' => true],
+                    'logs' => collect(),
+                    'medicines' => collect(),
+                    'dailyCompliance' => [],
+                ]);
+            } catch (Exception $e) {
+                return response()->json([
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ], 500);
+            }
+        })->middleware('auth');
+        
+        // DEBUG: Test history rendering with data
+        Route::get('/history-debug', function () {
+            try {
+                $stats = [
+                    'overall_compliance' => 75,
+                    'total_days' => 30,
+                    'perfect_days' => 20,
+                    'zero_days' => 5,
+                ];
+                
+                $dailyCompliance = [
+                    ['date' => '2026-03-01', 'count' => 2],
+                    ['date' => '2026-03-02', 'count' => 1],
+                    ['date' => '2026-03-03', 'count' => 3],
+                ];
+                
+                return view('app.history.index', [
+                    'logs' => collect(),
+                    'stats' => $stats,
+                    'dailyCompliance' => $dailyCompliance,
+                    'medicines' => collect(),
+                    'fromDate' => now()->subMonth()->toDateString(),
+                    'toDate' => now()->toDateString(),
+                    'selectedMedicineId' => null,
+                ]);
+            } catch (Exception $e) {
+                return response()->json([
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ], 500);
+            }
+        })->middleware('auth');
+        
         Route::get('/history/export', [MedicationHistoryController::class, 'exportCsv'])
             ->name('history.export');
 

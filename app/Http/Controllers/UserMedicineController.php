@@ -8,14 +8,27 @@ use Illuminate\Http\Request;
 class UserMedicineController extends Controller
 {
     /**
-     * Show list of medicines (admin + user medicines)
+     * Show list of user's medicines (own + scheduled)
+     * Include both PATIENT medicines AND medicines used in schedules
      */
     public function index()
     {
-        $adminMedicines = Medicine::adminMedicines()->paginate(5);
-        $userMedicines = Medicine::userMedicines(auth()->id())->get();
-
-        return view('app.medications.index', compact('adminMedicines', 'userMedicines'));
+        $userId = auth()->id();
+        
+        // Get medicines that user created themselves (PATIENT)
+        $ownMedicines = Medicine::userMedicines($userId)->get();
+        
+        // Get all medicines used in user's schedules (admin prescriptions)
+        $scheduledMedicines = Medicine::whereIn('id', function($query) use ($userId) {
+            $query->select('medicine_id')
+                  ->from('medication_schedules')
+                  ->where('user_id', $userId);
+        })->get();
+        
+        // Merge and get unique medicines (avoid duplicates)
+        $allMedicines = $ownMedicines->merge($scheduledMedicines)->unique('id');
+        
+        return view('app.medications.index', compact('allMedicines'));
     }
 
     /**

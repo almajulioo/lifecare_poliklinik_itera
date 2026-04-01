@@ -19,6 +19,22 @@
                 --primary-color: #16bac5;
                 --primary-dark: #0a9ca3;
             }
+            
+            /* Input focus styling */
+            input:focus, select:focus, textarea:focus {
+                border-color: var(--primary-color) !important;
+                box-shadow: 0 0 0 3px rgba(22, 186, 197, 0.1) !important;
+            }
+            
+            /* Smooth transitions */
+            input, select, textarea, button {
+                transition: all 0.2s ease;
+            }
+            
+            /* Alt text color for links */
+            a {
+                text-decoration: none;
+            }
         </style>
     </head>
     <body class="font-sans text-gray-900 antialiased">
@@ -39,22 +55,22 @@
             <!-- Mobile Container -->
             <div class="w-full max-w-md">
                 <!-- Header with Logo -->
-                <div class="pb-12 text-center">
+                <div class="pb-10 text-center">
                     <a href="/" class="inline-block">
-                        <div class="flex flex-col items-center gap-4">
+                        <div class="flex flex-col items-center gap-3">
                             <!-- ITERA Logo -->
-                            <img src="{{ asset('images/logo-itera.png') }}" alt="ITERA Logo" class="h-24 w-auto">
+                            <img src="{{ asset('images/logo-itera.png') }}" alt="ITERA Logo" class="h-20 w-auto">
                             <!-- Poliklinik Text -->
                             <div>
-                                <h1 class="text-4xl font-bold text-gray-800">POLIKLINIK ITERA</h1>
-                                <p class="text-base text-gray-600 mt-2">Institut Teknologi Sumatera</p>
+                                <h1 class="text-3xl font-bold text-gray-800">POLIKLINIK ITERA</h1>
+                                <p class="text-sm text-gray-600 mt-1">Institut Teknologi Sumatera</p>
                             </div>
                         </div>
                     </a>
                 </div>
 
                 <!-- Content with semi-transparent white background -->
-                <div class="bg-white bg-opacity-95 rounded-xl shadow-2xl overflow-hidden">
+                <div class="bg-white bg-opacity-95 rounded-xl shadow-2xl overflow-hidden border border-gray-200 border-opacity-50">
                     {{ $slot }}
                 </div>
             </div>

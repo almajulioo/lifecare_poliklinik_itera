@@ -28,39 +28,6 @@
 
     <div class="px-4 pt-4 space-y-4">
 
-    {{-- TEST MODAL BUTTON --}}
-    <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
-        <div class="flex-1">
-            <p class="text-xs font-semibold text-blue-700">Test Modal Notification</p>
-            <p class="text-xs text-blue-600">Klik tombol untuk lihat popup obat</p>
-        </div>
-        <button onclick="testShowModal()" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium transition">
-            Show Modal
-        </button>
-    </div>
-
-    <script>
-        function testShowModal() {
-            console.log('testShowModal clicked');
-            console.log('window.medicationModal:', window.medicationModal);
-            
-            if (window.medicationModal && typeof window.medicationModal.show === 'function') {
-                window.medicationModal.show({
-                    id: 1, 
-                    medicine_name: 'Paracetamol',
-                    medicine_dose: '500',
-                    medicine_unit: 'mg',
-                    time: '{{ now()->format("H:i") }}'
-                });
-            } else {
-                console.error('window.medicationModal.show is not available');
-                alert('Modal belum siap. Coba refresh page.');
-            }
-        }
-        
-        // Make it globally available
-        window.testShowModal = testShowModal;
-    </script>
 
     {{-- OBAT HARI INI SECTION --}}
     <div class="bg-white rounded-2xl p-4">

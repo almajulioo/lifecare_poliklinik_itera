@@ -6,13 +6,13 @@
     {{-- HEADER --}}
     <div class="bg-white px-4 pt-4 pb-4 border-b border-gray-100 sticky top-0 z-10">
         <h1 class="text-lg font-bold text-gray-900">📋 Daftar Obat</h1>
-        <p class="text-xs text-gray-500 mt-1">Obat pribadi Anda + obat dari jadwal yang diberikan</p>
+        <p class="text-xs text-gray-500 mt-1">Obat pribadi Anda dan obat dari jadwal yang diberikan</p>
     </div>
 
     <div class="px-4 pt-4 space-y-4">
 
         {{-- ADD BUTTON --}}
-        <a href="{{ route('app.medicines.create') }}" class="w-full bg-gradient-to-r from-green-500 to-green-500 hover:from-green-500 hover:to-green-600 text-white font-semibold py-3 rounded-lg text-center transition shadow-sm">
+        <a href="{{ route('app.medicines.create') }}" class="w-full bg-gradient-to-r from-green-500 to-green-500 hover:from-green-500 hover:to-green-600 text-white font-semibold py-3 rounded-lg text-center transition shadow-sm padding px-4">
             Tambah Obat Baru
         </a>
 
@@ -87,7 +87,7 @@
         {{-- INFO --}}
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
             <p class="text-xs text-blue-800">
-                <strong>ℹ️ Cara Menggunakan:</strong> Daftar menampilkan obat pribadi Anda dan obat dari jadwal yang diberikan. Anda hanya dapat mengedit obat pribadi Anda sendiri.
+                <strong>ℹ️ </strong> Daftar menampilkan obat pribadi Anda dan obat dari jadwal yang diberikan. Anda hanya dapat mengedit obat pribadi Anda sendiri.
             </p>
         </div>
 

@@ -28,58 +28,6 @@
             </div>
         </div>
 
-        <!-- Filter & Export -->
-        <div class="bg-gray-50 p-4 rounded border border-gray-200 mb-4">
-            <form id="filter-form" class="space-y-3">
-                <div class="grid grid-cols-2 gap-2">
-                    <input 
-                        type="date" 
-                        id="from_date" 
-                        name="from_date" 
-                        value="{{ $fromDate }}"
-                        class="px-3 py-2 border border-gray-300 rounded text-sm"
-                    />
-                    <input 
-                        type="date" 
-                        id="to_date" 
-                        name="to_date" 
-                        value="{{ $toDate }}"
-                        class="px-3 py-2 border border-gray-300 rounded text-sm"
-                    />
-                </div>
-
-                @if ($medicines && $medicines->count() > 0)
-                <select 
-                    id="medicine_id" 
-                    name="medicine_id"
-                    class="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                >
-                    <option value="">Semua Obat</option>
-                    @foreach ($medicines as $medicine)
-                    <option value="{{ $medicine->id }}" {{ $selectedMedicineId == $medicine->id ? 'selected' : '' }}>
-                        {{ $medicine->name }}
-                    </option>
-                    @endforeach
-                </select>
-                @endif
-
-                <div class="flex gap-2">
-                    <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded font-medium text-sm hover:bg-blue-700">
-                        Cari
-                    </button>
-                    <button type="button" id="export-btn" class="flex-1 px-4 py-2 bg-gray-300 text-gray-800 rounded font-medium text-sm hover:bg-gray-400">
-                        Unduh CSV
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Compliance Chart -->
-        <div class="bg-gray-50 p-4 rounded border border-gray-200 mb-4">
-            <p class="font-semibold text-sm text-gray-900 mb-2">Tren Kepatuhan</p>
-            <div id="compliance-chart" style="height: 120px; display: flex; align-items: flex-end; gap: 1px; background: white; padding: 8px; border-radius: 4px;">
-            </div>
-        </div>
 
         <!-- History List -->
         <div class="mb-6">

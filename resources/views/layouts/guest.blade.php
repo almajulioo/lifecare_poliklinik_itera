@@ -55,7 +55,7 @@
             <!-- Mobile Container -->
             <div class="w-full max-w-md">
                 <!-- Header with Logo -->
-                <div class="pb-10 text-center">
+                <div class="mb-6 pb-10 text-center">
                     <a href="/" class="inline-block">
                         <div class="flex flex-col items-center gap-3">
                             <!-- ITERA Logo -->
@@ -70,7 +70,7 @@
                 </div>
 
                 <!-- Content with semi-transparent white background -->
-                <div class="bg-white bg-opacity-95 rounded-xl shadow-2xl overflow-hidden border border-gray-200 border-opacity-50">
+                <div class="bg-white bg-opacity-50 rounded-xl shadow-2xl overflow-hidden border border-gray-200 border-opacity-50">
                     {{ $slot }}
                 </div>
             </div>

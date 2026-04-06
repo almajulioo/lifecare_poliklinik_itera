@@ -3,7 +3,7 @@
     <x-auth-session-status class="mb-6" :status="session('status')" />
 
     <!-- Title Section -->
-    <div class="text-center mb-8 px-6">
+    <div class="text-center mt-4 mb-4 px-6">
         <h1 class="text-3xl font-bold text-gray-900 mb-3">Welcome Back!</h1>
         <p class="text-sm text-gray-600 mb-3">Log in to manage your clinic appointments and healthcare</p>
         <p class="text-sm text-gray-600">Don't have an account? <a href="{{ route('register') }}" style="color: var(--primary-color);" class="font-semibold hover:underline">Sign up</a></p>

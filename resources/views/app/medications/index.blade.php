@@ -26,10 +26,6 @@
         {{-- OBAT PRIBADI SECTION --}}
         @if($allMedicines->count() > 0)
             <div>
-                <h2 class="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
-                    <span>Obat Pribadi & Jadwal Anda</span>
-                    <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{{ $allMedicines->count() }}</span>
-                </h2>
                 <div class="space-y-2">
                     @foreach($allMedicines as $medicine)
                         <div class="@if($medicine->user_id === auth()->id() && $medicine->source_type === 'PATIENT') bg-blue-50 border border-blue-200 @else bg-gray-50 border border-gray-300 @endif rounded-lg p-3 flex items-start justify-between">

@@ -46,6 +46,8 @@ class UserMedicineController extends Controller
     {
         $this->authorize('create', Medicine::class);
 
+        $userId = auth()->id();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'dose' => 'required|string|max:100',
@@ -53,8 +55,20 @@ class UserMedicineController extends Controller
             'notes' => 'nullable|string|max:500',
         ]);
 
+        // Check if medicine with same name already exists for this user
+        $existingMedicine = Medicine::where('user_id', $userId)
+            ->whereRaw('LOWER(name) = ?', [strtolower($validated['name'])])
+            ->first();
+
+        if ($existingMedicine) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['name' => 'Obat sudah ada. Gunakan nama yang berbeda.']);
+        }
+
         // Add user_id dan source_type untuk medicine PATIENT
-        $validated['user_id'] = auth()->id();
+        $validated['user_id'] = $userId;
         $validated['source_type'] = 'PATIENT';
 
         $medicine = Medicine::create($validated);

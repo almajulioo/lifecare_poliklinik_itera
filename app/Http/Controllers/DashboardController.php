@@ -87,10 +87,23 @@ class DashboardController extends Controller
         }
 
         foreach ($schedules as $schedule) {
-            $currentDate = Carbon::parse($schedule->start_date);
-            $endDateMax = $schedule->end_date ? Carbon::parse($schedule->end_date) : now()->addDays(30);
+            // Start date: use max of schedule start_date or today
+            // This handles schedules that started in the past
+            $startDate = Carbon::parse($schedule->start_date);
+            $iterationStart = $startDate->lt(now()) ? now()->startOfDay() : $startDate->startOfDay();
+            
+            // End date: use min of schedule end_date or 30 days from now
+            $limit30Days = now()->addDays(30)->endOfDay();
+            if ($schedule->end_date) {
+                $scheduleEnd = Carbon::parse($schedule->end_date);
+                $iterationEnd = $scheduleEnd->gt($limit30Days) ? $limit30Days : $scheduleEnd->endOfDay();
+            } else {
+                $iterationEnd = $limit30Days;
+            }
 
-            while ($currentDate->lte($endDateMax) && $currentDate->diffInDays(now()) < 30) {
+            // Iterate through all days in the range
+            $currentDate = $iterationStart->copy()->startOfDay();
+            while ($currentDate->lte($iterationEnd)) {
                 $dateStr = $currentDate->toDateString();
                 
                 if (isset($schedulesByDate[$dateStr])) {

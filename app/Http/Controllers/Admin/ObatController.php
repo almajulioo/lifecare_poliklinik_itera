@@ -59,6 +59,17 @@ class ObatController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        // Check if medicine with same name already exists
+        $existingMedicine = Medicine::whereRaw('LOWER(name) = ?', [strtolower($validated['name'])])
+            ->first();
+
+        if ($existingMedicine) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['name' => 'Obat dengan nama ini sudah ada. Gunakan nama yang berbeda.']);
+        }
+
         // Add source_type as ADMIN for medicines created by admin
         $validated['source_type'] = 'ADMIN';
         $validated['user_id'] = null; // Admin medicines don't belong to specific user
@@ -90,6 +101,18 @@ class ObatController extends Controller
             'unit' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
         ]);
+
+        // Check if another medicine with same name already exists (exclude current medicine)
+        $existingMedicine = Medicine::whereRaw('LOWER(name) = ?', [strtolower($validated['name'])])
+            ->where('id', '!=', $medicine->id)
+            ->first();
+
+        if ($existingMedicine) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['name' => 'Obat dengan nama ini sudah ada. Gunakan nama yang berbeda.']);
+        }
 
         $medicine->update($validated);
 

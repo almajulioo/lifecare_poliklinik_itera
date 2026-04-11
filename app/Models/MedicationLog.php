@@ -28,4 +28,9 @@ class MedicationLog extends Model
     {
         return $this->belongsTo(MedicationSchedule::class, 'medication_schedule_id');
     }
+
+    public function medicationSchedule()
+    {
+        return $this->belongsTo(MedicationSchedule::class, 'medication_schedule_id');
+    }
 }

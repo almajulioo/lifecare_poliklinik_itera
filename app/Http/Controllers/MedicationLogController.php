@@ -79,7 +79,7 @@ class MedicationLogController extends Controller
 
                 // Check for conflicts: Already taken in last 2 hours
                 $existingLog = MedicationLog::where('user_id', $userId)
-                    ->where('medication_schedule_id' => $schedule->id)
+                    ->where('medication_schedule_id', $schedule->id)
                     ->where('status', 'taken')
                     ->where('created_at', '>=', now()->subHours(2))
                     ->first();

@@ -8,7 +8,7 @@
     <!-- Page Header dengan Deskripsi -->
     <div class="flex items-start justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-900">Pengguna</h2>
+            <h2 class="text-2xl font-bold text-gray-900">Pengguna Aplikasi</h2>
             <p class="text-sm text-gray-600 mt-1">Kelola dan pantau semua pengguna yang terdaftar</p>
         </div>
         <a href="{{ route('admin.pengguna.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">

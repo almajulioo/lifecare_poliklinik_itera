@@ -115,7 +115,7 @@
                 <div class="text-6xl mb-4">🎉</div>
                 <h2 class="text-xl font-bold text-slate-900 mb-2">Tidak Ada Jadwal</h2>
                 <p class="text-slate-600 mb-6">Anda belum memiliki jadwal minum obat. Silakan buat jadwal baru.</p>
-                <a href="{{ route('app.medicines.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition">
+                <a href="{{ route('app.schedules.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition">
                     Buat Jadwal
                 </a>
             </div>

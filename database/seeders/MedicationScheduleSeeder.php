@@ -11,32 +11,132 @@ class MedicationScheduleSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get all users
-        $users = User::all();
-        $medicines = Medicine::all();
+        $schedules = [
+            // Jadwal untuk Budi Santoso (mahasiswa dengan diabetes)
+            [
+                'user_email' => 'budi@example.com',
+                'medicine_name' => 'Metformin',
+                'start_date' => now()->toDateString(),
+                'end_date' => null,
+                'time' => '08:00',
+                'frequency' => '2x sehari',
+                'duration_days' => 365,
+                'source' => 'resep',
+                'source_type' => 'ADMIN',
+                'is_active' => true,
+                'notes' => 'Jadwal rutin untuk kontrol diabetes',
+            ],
+            // Jadwal untuk Siti Nurhaliza (mahasiswa dengan hipertensi)
+            [
+                'user_email' => 'siti@example.com',
+                'medicine_name' => 'Amlodipine',
+                'start_date' => now()->toDateString(),
+                'end_date' => null,
+                'time' => '07:00',
+                'frequency' => '1x sehari',
+                'duration_days' => 365,
+                'source' => 'resep',
+                'source_type' => 'ADMIN',
+                'is_active' => true,
+                'notes' => 'Obat tekanan darah tinggi',
+            ],
+            // Jadwal untuk Ahmad Wijaya (mahasiswa)
+            [
+                'user_email' => 'ahmad@example.com',
+                'medicine_name' => 'Vitamin C',
+                'start_date' => now()->toDateString(),
+                'end_date' => null,
+                'time' => '09:00',
+                'frequency' => '1x sehari',
+                'duration_days' => 30,
+                'source' => 'mandiri',
+                'source_type' => 'PATIENT',
+                'is_active' => true,
+                'notes' => 'Suplemen untuk imunitas',
+            ],
+            // Jadwal untuk Rina Wijaya (mahasiswa dengan asma)
+            [
+                'user_email' => 'rina@example.com',
+                'medicine_name' => 'Salbutamol',
+                'start_date' => now()->toDateString(),
+                'end_date' => null,
+                'time' => '06:00',
+                'frequency' => '2x sehari',
+                'duration_days' => 180,
+                'source' => 'resep',
+                'source_type' => 'ADMIN',
+                'is_active' => true,
+                'notes' => 'Inhalasi asma pagi dan malam',
+            ],
+            // Jadwal untuk Doni Setiawan (mahasiswa dengan penyakit jantung)
+            [
+                'user_email' => 'doni@example.com',
+                'medicine_name' => 'Aspirin',
+                'start_date' => now()->toDateString(),
+                'end_date' => null,
+                'time' => '08:00',
+                'frequency' => '1x sehari',
+                'duration_days' => 365,
+                'source' => 'resep',
+                'source_type' => 'ADMIN',
+                'is_active' => true,
+                'notes' => 'Pencegahan trombosis',
+            ],
+            // Jadwal untuk Dr. Bambang (pegawai)
+            [
+                'user_email' => 'bambang@example.com',
+                'medicine_name' => 'Omeprazole',
+                'start_date' => now()->toDateString(),
+                'end_date' => null,
+                'time' => '07:30',
+                'frequency' => '1x sehari',
+                'duration_days' => 90,
+                'source' => 'resep',
+                'source_type' => 'ADMIN',
+                'is_active' => true,
+                'notes' => 'Pengobatan asam lambung',
+            ],
+            // Jadwal untuk Ibu Sartini (pegawai)
+            [
+                'user_email' => 'sartini@example.com',
+                'medicine_name' => 'Vitamin B12',
+                'start_date' => now()->toDateString(),
+                'end_date' => null,
+                'time' => '10:00',
+                'frequency' => '3x seminggu',
+                'duration_days' => 30,
+                'source' => 'mandiri',
+                'source_type' => 'PATIENT',
+                'is_active' => true,
+                'notes' => 'Suplemen energi',
+            ],
+        ];
 
-        if ($users->isEmpty() || $medicines->isEmpty()) {
-            return;
-        }
+        $users = User::all()->keyBy('email');
+        $medicines = Medicine::all()->keyBy('name');
 
-        // Create multiple schedules per user (realistic scenario)
-        foreach ($users as $user) {
-            // Each user gets 2-5 medication schedules
-            $count = rand(2, 5);
-            
-            for ($i = 0; $i < $count; $i++) {
-                MedicationSchedule::factory()
-                    ->for($user)
-                    ->for($medicines->random())
-                    ->create();
+        foreach ($schedules as $schedule) {
+            $userId = $users[$schedule['user_email']]->id ?? null;
+            $medicineId = $medicines[$schedule['medicine_name']]->id ?? null;
+
+            if ($userId && $medicineId) {
+                MedicationSchedule::updateOrCreate(
+                    [
+                        'user_id' => $userId,
+                        'medicine_id' => $medicineId,
+                        'start_date' => $schedule['start_date'],
+                    ],
+                    [
+                        'end_date' => $schedule['end_date'],
+                        'time' => $schedule['time'],
+                        'frequency' => $schedule['frequency'],
+                        'duration_days' => $schedule['duration_days'],
+                        'source' => $schedule['source'],
+                        'source_type' => $schedule['source_type'],
+                        'is_active' => $schedule['is_active'],
+                    ]
+                );
             }
-        }
-
-        // Ensure at least 200 total schedules
-        $currentCount = MedicationSchedule::count();
-        if ($currentCount < 200) {
-            $toCreate = 200 - $currentCount;
-            MedicationSchedule::factory($toCreate)->create();
         }
     }
 }

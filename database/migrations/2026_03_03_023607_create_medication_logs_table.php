@@ -11,22 +11,17 @@ return new class extends Migration
     {
         Schema::create('medication_logs', function (Blueprint $table) {
             $table->id();
-
-            // relasi ke user (pasien)
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-
-            // relasi ke jadwal
             $table->foreignId('medication_schedule_id')
                 ->constrained('medication_schedules')
                 ->cascadeOnDelete();
-
             $table->dateTime('taken_at')->nullable(); // waktu dikonfirmasi minum
-
             $table->enum('status', ['pending', 'taken', 'missed'])
                 ->default('pending');
-
-            $table->text('note')->nullable(); // opsional catatan
-
+            $table->text('note')->nullable();                           // opsional catatan
+            $table->boolean('offline_synced')->default(false);
+            $table->dateTime('offline_synced_at')->nullable();
+            $table->text('sync_metadata')->nullable();
             $table->timestamps();
         });
     }

@@ -21,8 +21,6 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->enum('status', ['aktif', 'tidak_aktif'])->default('aktif');
             $table->timestamps();
-
-            // Add indexes for performance
             $table->index('user_id');
             $table->index('status');
             $table->index('category');

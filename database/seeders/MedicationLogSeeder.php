@@ -5,51 +5,52 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\MedicationLog;
 use App\Models\MedicationSchedule;
-use App\Models\User;
+use Carbon\Carbon;
 
 class MedicationLogSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get all medication schedules
-        $schedules = MedicationSchedule::where('is_active', true)
-            ->with('user')
-            ->get();
+        $schedules = MedicationSchedule::with('user')->get();
 
         if ($schedules->isEmpty()) {
             return;
         }
 
-        // Create logs for the past 30 days
+        // Buat log untuk 14 hari terakhir
         foreach ($schedules as $schedule) {
-            // Each active schedule has logs for the past 30 days
-            for ($daysAgo = 30; $daysAgo >= 0; $daysAgo--) {
-                // Skip creation for future dates
+            $startDate = Carbon::parse($schedule->start_date);
+            $endDate = $schedule->end_date ? Carbon::parse($schedule->end_date) : now();
+            
+            for ($daysAgo = 14; $daysAgo >= 0; $daysAgo--) {
                 $logDate = now()->subDays($daysAgo)->startOfDay();
                 
-                if ($logDate->isAfter($schedule->start_date) && 
-                    ($schedule->end_date === null || $logDate->isBefore($schedule->end_date->endOfDay()))) {
+                // Cek apakah tanggal dalam range jadwal
+                if ($logDate->greaterThanOrEqualTo($startDate) && $logDate->lessThanOrEqualTo($endDate)) {
+                    // Status: 80% taken, 15% missed, 5% pending
+                    $randStatus = rand(1, 100);
+                    if ($randStatus <= 80) {
+                        $status = 'taken';
+                    } elseif ($randStatus <= 95) {
+                        $status = 'missed';
+                    } else {
+                        $status = 'pending';
+                    }
                     
-                    // 75% chance of taking the medication
-                    $status = rand(1, 100) <= 75 ? 'taken' : (rand(1, 100) <= 50 ? 'missed' : 'pending');
-                    
-                    MedicationLog::factory()
-                        ->for($schedule->user)
-                        ->state([
+                    MedicationLog::updateOrCreate(
+                        [
+                            'user_id' => $schedule->user_id,
                             'medication_schedule_id' => $schedule->id,
-                            'status' => $status,
                             'created_at' => $logDate,
-                        ])
-                        ->create();
+                        ],
+                        [
+                            'taken_at' => $status === 'taken' ? $logDate->addHours(rand(6, 18)) : null,
+                            'status' => $status,
+                            'offline_synced' => false,
+                        ]
+                    );
                 }
             }
-        }
-
-        // Ensure minimum logs (at least 1000)
-        $currentCount = MedicationLog::count();
-        if ($currentCount < 1000) {
-            $toCreate = 1000 - $currentCount;
-            MedicationLog::factory($toCreate)->create();
         }
     }
 }

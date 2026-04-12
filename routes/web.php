@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MedicationLogController;
 use App\Http\Controllers\UserMedicineController;
+use App\Http\Controllers\UserMedicationScheduleController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\MedicationHistoryController;
 use App\Http\Controllers\Admin\AdminAuthController;
@@ -62,6 +63,22 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/medications/{medicine}', [UserMedicineController::class, 'destroy'])
             ->name('medicines.destroy');
 
+        // User Medication Schedules
+        Route::get('/schedules', [UserMedicationScheduleController::class, 'index'])
+            ->name('schedules.index');
+        Route::get('/schedules/create', [UserMedicationScheduleController::class, 'create'])
+            ->name('schedules.create');
+        Route::get('/schedules/upcoming', [DashboardController::class, 'upcomingSchedules'])
+            ->name('schedules.upcoming');
+        Route::post('/schedules', [UserMedicationScheduleController::class, 'store'])
+            ->name('schedules.store');
+        Route::get('/schedules/{schedule}/edit', [UserMedicationScheduleController::class, 'edit'])
+            ->name('schedules.edit');
+        Route::put('/schedules/{schedule}', [UserMedicationScheduleController::class, 'update'])
+            ->name('schedules.update');
+        Route::delete('/schedules/{schedule}', [UserMedicationScheduleController::class, 'destroy'])
+            ->name('schedules.destroy');
+
         // History list
         Route::get('/history', [MedicationHistoryController::class, 'index'])
             ->name('history.index');
@@ -120,10 +137,6 @@ Route::middleware(['auth'])->group(function () {
         
         Route::get('/history/export', [MedicationHistoryController::class, 'exportCsv'])
             ->name('history.export');
-
-        // Upcoming schedules
-        Route::get('/schedules/upcoming', [DashboardController::class, 'upcomingSchedules'])
-            ->name('schedules.upcoming');
 
         // Compliance statistics
         Route::get('/compliance', function() {

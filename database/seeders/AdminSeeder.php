@@ -10,7 +10,6 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create multiple admins with realistic Indonesian data
         $admins = [
             [
                 'email' => 'admin@lifecare.test',
@@ -40,8 +39,5 @@ class AdminSeeder extends Seeder
                 $admin
             );
         }
-
-        // Use factory to create additional admins (5 more)
-        \App\Models\Admin::factory(5)->create();
     }
 }

@@ -76,8 +76,5 @@ class MedicineSeeder extends Seeder
                 $medicine
             );
         }
-
-        // Create additional randomized medicines using factory (50 more)
-        Medicine::factory(50)->create();
     }
 }

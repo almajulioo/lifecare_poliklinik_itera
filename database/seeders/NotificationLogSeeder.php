@@ -5,12 +5,12 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\NotificationLog;
 use App\Models\MedicationSchedule;
+use Carbon\Carbon;
 
 class NotificationLogSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get all active medication schedules
         $schedules = MedicationSchedule::where('is_active', true)
             ->with('user')
             ->get();
@@ -19,48 +19,47 @@ class NotificationLogSeeder extends Seeder
             return;
         }
 
-        // Create notification logs for past 14 days
+        // Buat notifikasi log untuk 14 hari terakhir
         foreach ($schedules as $schedule) {
             for ($daysAgo = 14; $daysAgo >= 0; $daysAgo--) {
                 $logDate = now()->subDays($daysAgo)->startOfDay();
                 
-                if ($logDate->isAfter($schedule->start_date) && 
-                    ($schedule->end_date === null || $logDate->isBefore($schedule->end_date->endOfDay()))) {
+                $startDate = Carbon::parse($schedule->start_date);
+                $endDate = $schedule->end_date ? Carbon::parse($schedule->end_date) : now();
+                
+                if ($logDate->greaterThanOrEqualTo($startDate) && $logDate->lessThanOrEqualTo($endDate)) {
+                    // Parse waktu dari jadwal
+                    $time = $schedule->time ?? '08:00';
+                    [$hour, $minute] = explode(':', $time);
                     
-                    // Parse time from schedule
-                    $times = is_array($schedule->time) ? $schedule->time : explode(',', $schedule->time);
+                    $scheduledTime = $logDate->clone()
+                        ->setHour((int)$hour)
+                        ->setMinute((int)$minute);
                     
-                    foreach ($times as $time) {
-                        $time = trim($time);
-                        [$hour, $minute] = explode(':', $time);
-                        
-                        $scheduledTime = $logDate
-                            ->setHour((int)$hour)
-                            ->setMinute((int)$minute);
-                        
-                        // 90% of notifications are sent successfully
-                        $status = rand(1, 100) <= 90 
-                            ? (rand(1, 100) <= 70 ? 'sent' : 'snoozed')
-                            : (rand(1, 100) <= 50 ? 'dismissed' : 'pending');
-                        
-                        NotificationLog::factory()
-                            ->for($schedule->user)
-                            ->state([
-                                'medication_schedule_id' => $schedule->id,
-                                'scheduled_time' => $scheduledTime,
-                                'status' => $status,
-                            ])
-                            ->create();
+                    // Status: 85% sent, 10% snoozed, 5% pending
+                    $randStatus = rand(1, 100);
+                    if ($randStatus <= 85) {
+                        $status = 'sent';
+                    } elseif ($randStatus <= 95) {
+                        $status = 'snoozed';
+                    } else {
+                        $status = 'pending';
                     }
+                    
+                    NotificationLog::updateOrCreate(
+                        [
+                            'user_id' => $schedule->user_id,
+                            'medication_schedule_id' => $schedule->id,
+                            'scheduled_time' => $scheduledTime,
+                        ],
+                        [
+                            'sent_at' => $status === 'sent' ? $scheduledTime->addMinutes(rand(0, 5)) : null,
+                            'status' => $status,
+                            'notification_type' => 'browser',
+                        ]
+                    );
                 }
             }
-        }
-
-        // Ensure minimum notifications (at least 500)
-        $currentCount = NotificationLog::count();
-        if ($currentCount < 500) {
-            $toCreate = 500 - $currentCount;
-            NotificationLog::factory($toCreate)->create();
         }
     }
 }

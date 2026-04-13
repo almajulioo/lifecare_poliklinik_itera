@@ -83,6 +83,7 @@
                 name="start_date"
                 value="{{ old('start_date') ?? now()->toDateString() }}"
                 required
+                onchange="calculateDuration()"
                 class="w-full px-3 py-2 border {{ $errors->has('start_date') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
             />
             @error('start_date')
@@ -102,6 +103,7 @@
                 id="end_date"
                 name="end_date"
                 value="{{ old('end_date') }}"
+                onchange="calculateDuration()"
                 class="w-full px-3 py-2 border {{ $errors->has('end_date') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
             />
             @error('end_date')
@@ -117,19 +119,16 @@
                 Jam Minum <span class="text-red-600">*</span>
             </label>
             <div id="time-inputs-container" class="space-y-2">
-                <div class="time-input-wrapper flex gap-2 items-end">
-                    <div class="flex-1">
-                        <input
-                            type="time"
-                            name="times[]"
-                            value="{{ old('times.0') }}"
-                            required
-                            class="w-full px-3 py-2 border {{ $errors->has('times') || $errors->has('times.0') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
-                        />
-                    </div>
-                    <button type="button" onclick="addTimeInput()" class="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">
-                        +
-                    </button>
+                <div class="time-input-wrapper">
+                    <label for="time_1" class="block text-xs text-gray-600 mb-1">Jam ke 1</label>
+                    <input
+                        type="time"
+                        id="time_1"
+                        name="times[]"
+                        value="{{ old('times.0') }}"
+                        required
+                        class="w-full px-3 py-2 border {{ $errors->has('times') || $errors->has('times.0') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
+                    />
                 </div>
             </div>
             @error('times')
@@ -142,18 +141,24 @@
         <!-- Frekuensi -->
         <div>
             <label for="frequency" class="block text-sm font-semibold text-gray-900 mb-1">
-                Frekuensi
+                Frekuensi (Opsional)
             </label>
             <select
                 id="frequency"
                 name="frequency"
                 class="w-full px-3 py-2 border {{ $errors->has('frequency') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
+                onchange="updateTimeInputs()"
             >
-                <option value="">-- Tidak ada --</option>
+                <option value="">-- Pilih Frekuensi (Opsional) --</option>
                 <option value="1x sehari" {{ old('frequency') == '1x sehari' ? 'selected' : '' }}>1x sehari</option>
                 <option value="2x sehari" {{ old('frequency') == '2x sehari' ? 'selected' : '' }}>2x sehari</option>
                 <option value="3x sehari" {{ old('frequency') == '3x sehari' ? 'selected' : '' }}>3x sehari</option>
                 <option value="4x sehari" {{ old('frequency') == '4x sehari' ? 'selected' : '' }}>4x sehari</option>
+                <option value="setiap 12 jam" {{ old('frequency') == 'setiap 12 jam' ? 'selected' : '' }}>Setiap 12 jam</option>
+                <option value="setiap 8 jam" {{ old('frequency') == 'setiap 8 jam' ? 'selected' : '' }}>Setiap 8 jam</option>
+                <option value="setiap 6 jam" {{ old('frequency') == 'setiap 6 jam' ? 'selected' : '' }}>Setiap 6 jam</option>
+                <option value="setiap 4 jam" {{ old('frequency') == 'setiap 4 jam' ? 'selected' : '' }}>Setiap 4 jam</option>
+                <option value="saat diperlukan" {{ old('frequency') == 'saat diperlukan' ? 'selected' : '' }}>Saat diperlukan</option>
             </select>
             @error('frequency')
                 <p class="text-red-600 text-xs mt-2 flex items-center gap-1">
@@ -203,31 +208,139 @@
 </div>
 
 <script>
-let timeInputCount = 1;
+function updateTimeInputs() {
+    try {
+        const frequency = document.getElementById('frequency').value;
+        const container = document.getElementById('time-inputs-container');
+        
+        if (!container) {
+            console.error('Time inputs container not found');
+            return;
+        }
+        
+        // Store old time values before clearing
+        const oldTimes = Array.from(
+            container.querySelectorAll('input[type="time"]')
+        ).map(input => input.value).filter(val => val);
+        
+        // Determine number of inputs based on frequency
+        let numInputs = 1;
+        let labels = {};
+        
+        switch(frequency) {
+            case '1x sehari':
+            case 'saat diperlukan':
+                numInputs = 1;
+                labels = { 1: 'Jam ke 1' };
+                break;
+            case '2x sehari':
+            case 'setiap 12 jam':
+                numInputs = 2;
+                labels = { 1: 'Jam ke 1 (Pagi)', 2: 'Jam ke 2 (Sore)' };
+                break;
+            case '3x sehari':
+            case 'setiap 8 jam':
+                numInputs = 3;
+                labels = { 1: 'Jam ke 1 (Pagi)', 2: 'Jam ke 2 (Siang)', 3: 'Jam ke 3 (Malam)' };
+                break;
+            case '4x sehari':
+            case 'setiap 6 jam':
+                numInputs = 4;
+                labels = { 1: 'Jam ke 1 (Pagi)', 2: 'Jam ke 2 (Siang)', 3: 'Jam ke 3 (Sore)', 4: 'Jam ke 4 (Malam)' };
+                break;
+            case 'setiap 4 jam':
+                numInputs = 6;
+                labels = { 1: 'Jam ke 1', 2: 'Jam ke 2', 3: 'Jam ke 3', 4: 'Jam ke 4', 5: 'Jam ke 5', 6: 'Jam ke 6' };
+                break;
+            default:
+                numInputs = 1;
+                labels = { 1: 'Jam ke 1' };
+        }
+        
+        // Clear container
+        container.innerHTML = '';
+        
+        // Create new inputs
+        for (let i = 1; i <= numInputs; i++) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'time-input-wrapper';
+            
+            const label = document.createElement('label');
+            label.htmlFor = `time_${i}`;
+            label.className = 'block text-xs text-gray-600 mb-1';
+            label.textContent = labels[i] || `Jam ke ${i}`;
+            
+            const input = document.createElement('input');
+            input.type = 'time';
+            input.id = `time_${i}`;
+            input.name = 'times[]';
+            input.className = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition';
+            input.required = true;
+            
+            // Restore old values if they exist
+            if (oldTimes && oldTimes.length > 0 && oldTimes[i - 1]) {
+                input.value = oldTimes[i - 1];
+            }
+            
+            wrapper.appendChild(label);
+            wrapper.appendChild(input);
+            container.appendChild(wrapper);
+        }
+    } catch (error) {
+        console.error('Error updating time inputs:', error);
+    }
+}
 
-function addTimeInput() {
-    timeInputCount++;
-    const container = document.getElementById('time-inputs-container');
-    
-    const wrapper = document.createElement('div');
-    wrapper.className = 'time-input-wrapper flex gap-2 items-end';
-    
-    const input = document.createElement('input');
-    input.type = 'time';
-    input.name = 'times[]';
-    input.className = 'flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500';
-    
-    const removeBtn = document.createElement('button');
-    removeBtn.type = 'button';
-    removeBtn.className = 'px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium';
-    removeBtn.textContent = 'Hapus';
-    removeBtn.onclick = function() {
-        wrapper.remove();
-    };
-    
-    wrapper.appendChild(input);
-    wrapper.appendChild(removeBtn);
-    container.appendChild(wrapper);
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const frequency = document.getElementById('frequency');
+        if (frequency && frequency.value) {
+            updateTimeInputs();
+        }
+        
+        // Calculate duration on page load if dates are already filled
+        calculateDuration();
+    } catch (error) {
+        console.error('Error initializing form:', error);
+    }
+});
+
+function calculateDuration() {
+    try {
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+        const durationField = document.getElementById('duration_days');
+        
+        if (!startDateInput || !endDateInput || !durationField) {
+            return;
+        }
+        
+        const startValue = startDateInput.value;
+        const endValue = endDateInput.value;
+        
+        if (startValue && endValue) {
+            // Convert date strings to Date objects
+            const startDate = new Date(startValue);
+            const endDate = new Date(endValue);
+            
+            // Calculate difference in milliseconds
+            const timeDiff = endDate - startDate;
+            
+            // Convert to days (1 day = 24 * 60 * 60 * 1000 milliseconds)
+            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 to include both start and end day
+            
+            // Only set if positive
+            if (daysDiff > 0) {
+                durationField.value = daysDiff;
+            }
+        } else if (startValue && !endValue) {
+            // Clear duration if only start date is selected
+            durationField.value = '';
+        }
+    } catch (error) {
+        console.error('Error calculating duration:', error);
+    }
 }
 </script>
 @endsection

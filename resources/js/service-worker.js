@@ -244,6 +244,10 @@ self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'check-notifications') {
     event.waitUntil(checkNotifications());
   }
+  
+  if (event.tag === 'check-second-reminders') {
+    event.waitUntil(checkSecondReminders());
+  }
 });
 
 /**
@@ -253,22 +257,58 @@ async function checkNotifications() {
   try {
     console.log('[Service Worker] Checking notifications...');
     
-    // Fetch current notification times from server
-    const response = await fetch('/api/notification-times', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-    });
-    
-    if (!response.ok) {
-      console.warn('[Service Worker] Failed to fetch notification times');
+    let notifications = null;
+
+    // Try to fetch from server first
+    try {
+      const response = await fetch('/api/notification-times', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        notifications = data.today || [];
+        
+        // Cache the notifications in IndexedDB for offline access
+        await storeInIndexedDB('notification_times', {
+          id: 'today-notifications',
+          data: notifications,
+          timestamp: new Date().toIso8601String(),
+        });
+        
+        console.log('[Service Worker] Fetched fresh notifications from server');
+      } else {
+        console.warn('[Service Worker] Failed to fetch from server, trying cache...');
+        notifications = null;
+      }
+    } catch (networkError) {
+      console.warn('[Service Worker] Network error, trying IndexedDB cache...', networkError.message);
+      notifications = null;
+    }
+
+    // Fallback: Load from IndexedDB if fetch failed or offline
+    if (!notifications) {
+      try {
+        const cachedData = await getFromIndexedDB('notification_times', 'today-notifications');
+        if (cachedData && cachedData.data) {
+          notifications = cachedData.data;
+          console.log('[Service Worker] Loaded notifications from IndexedDB cache (OFFLINE MODE)');
+        }
+      } catch (cacheError) {
+        console.warn('[Service Worker] Could not load from cache:', cacheError.message);
+        notifications = null;
+      }
+    }
+
+    // No data available (online or offline)
+    if (!notifications || notifications.length === 0) {
+      console.warn('[Service Worker] No notifications available');
       return;
     }
-    
-    const data = await response.json();
-    const notifications = data.today || [];
     
     // Get current time
     const now = new Date();
@@ -280,9 +320,7 @@ async function checkNotifications() {
     // Check each notification
     for (const notif of notifications) {
       if (notif.time === currentTime && !notif.already_taken) {
-        // Check if this medication is snoozed (cached)
-        // Note: Service Worker can't directly access Laravel cache
-        // So we'll check IndexedDB for snooze info instead
+        // Check if this medication is snoozed
         const isSnoozed = await checkIfSnoozed(notif.id);
         
         if (isSnoozed) {
@@ -312,8 +350,12 @@ async function checkNotifications() {
           },
         });
         
-        // Mark as notified
-        await markNotificationSent(notif.id);
+        // Mark as notified (hanya jika online)
+        if (navigator.onLine) {
+          await markNotificationSent(notif.id);
+        } else {
+          console.log('[Service Worker] Offline - notification sent locally, will sync later');
+        }
       }
     }
   } catch (error) {
@@ -350,6 +392,128 @@ async function syncNotificationTimes() {
     console.log('[Service Worker] Notification times synced');
   } catch (error) {
     console.error('[Service Worker] Error syncing notification times:', error);
+  }
+}
+
+/**
+ * Check Second Reminders and Send If Time Matches
+ * Only send second reminders for medications that haven't been confirmed after first reminder
+ * Works OFFLINE using cached data from last sync
+ */
+async function checkSecondReminders() {
+  try {
+    console.log('[Service Worker] Checking second reminders...');
+    
+    let secondReminders = null;
+
+    // Try to fetch from server first
+    try {
+      const response = await fetch('/api/second-reminders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        secondReminders = data.second_reminders || [];
+        
+        // Cache the second reminders in IndexedDB for offline access
+        await storeInIndexedDB('notification_times', {
+          id: 'second-reminders',
+          data: secondReminders,
+          timestamp: new Date().toIso8601String(),
+        });
+        
+        console.log('[Service Worker] Fetched fresh second reminders from server');
+      } else {
+        console.warn('[Service Worker] Failed to fetch second reminders from server, trying cache...');
+        secondReminders = null;
+      }
+    } catch (networkError) {
+      console.warn('[Service Worker] Network error checking second reminders, trying IndexedDB cache...', networkError.message);
+      secondReminders = null;
+    }
+
+    // Fallback: Load from IndexedDB if fetch failed or offline
+    if (!secondReminders) {
+      try {
+        const cachedData = await getFromIndexedDB('notification_times', 'second-reminders');
+        if (cachedData && cachedData.data) {
+          secondReminders = cachedData.data;
+          console.log('[Service Worker] Loaded second reminders from IndexedDB cache (OFFLINE MODE)');
+        }
+      } catch (cacheError) {
+        console.warn('[Service Worker] Could not load second reminders from cache:', cacheError.message);
+        secondReminders = null;
+      }
+    }
+
+    // No data available
+    if (!secondReminders || secondReminders.length === 0) {
+      console.log('[Service Worker] No pending second reminders');
+      return;
+    }
+    
+    console.log(`[Service Worker] Found ${secondReminders.length} pending second reminders`);
+    
+    // Show notifications for each pending second reminder
+    for (const reminder of secondReminders) {
+      // Show second reminder notification
+      self.registration.showNotification('💊 Pengingat Kedua - Minum Obat', {
+        body: `${reminder.medicine_name} (${reminder.medicine_dose}) - Jangan lupa minum obat Anda!`,
+        icon: '⏰',
+        badge: '⏰',
+        tag: `medication-reminder-2-${reminder.medication_schedule_id}`,
+        requireInteraction: true,
+        actions: [
+          { action: 'confirm', title: 'Saya sudah minum ✓' },
+          { action: 'snooze', title: 'Tunda 15 menit' },
+        ],
+        // Embed data untuk digunakan saat notification di-click
+        data: {
+          id: reminder.medication_schedule_id,
+          notification_log_id: reminder.notification_log_id,
+          medicine_name: reminder.medicine_name,
+          medicine_dose: reminder.medicine_dose,
+          time: reminder.time,
+          reminder_type: 'second',
+          route: '/app/dashboard',
+        },
+      });
+      
+      // Mark second reminder as sent (hanya jika online)
+      if (navigator.onLine) {
+        await markSecondReminderSent(reminder.notification_log_id);
+      } else {
+        console.log('[Service Worker] Offline - second reminder sent locally, will sync when online');
+      }
+    }
+  } catch (error) {
+    console.error('[Service Worker] Error checking second reminders:', error);
+  }
+}
+
+/**
+ * Mark second reminder as sent
+ */
+async function markSecondReminderSent(notificationLogId) {
+  try {
+    await fetch('/api/second-reminder-sent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({
+        notification_log_id: notificationLogId,
+        notification_type: 'browser',
+      }),
+    });
+  } catch (error) {
+    console.error('[Service Worker] Error marking second reminder sent:', error);
   }
 }
 

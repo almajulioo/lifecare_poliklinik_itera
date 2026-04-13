@@ -190,6 +190,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/dismiss-notification', [NotificationController::class, 'dismissNotification'])
             ->name('dismiss-notification');
         
+        // SECOND REMINDER ROUTES
+        Route::post('/second-reminders', [NotificationController::class, 'getSecondReminders'])
+            ->name('second-reminders');
+        
+        Route::post('/second-reminder-sent', [NotificationController::class, 'markSecondReminderSent'])
+            ->name('second-reminder-sent');
+        
         // MEDICATION ACTION ROUTES (for notification modal)
         Route::get('/medication-schedule/{schedule}', [MedicationLogController::class, 'getScheduleDetails'])
             ->name('medication-schedule');

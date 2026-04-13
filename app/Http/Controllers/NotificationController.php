@@ -10,6 +10,8 @@ use Carbon\Carbon;
 
 class NotificationController extends Controller
 {
+    // How many minutes after scheduled time to send second reminder (if not confirmed)
+    const SECOND_REMINDER_MINUTES = 30;
     /**
      * Get today's notification times (schedules that should trigger notifications)
      * Returns list of medication times for today and tomorrow
@@ -116,12 +118,18 @@ class NotificationController extends Controller
             ->whereDate('scheduled_time', today())
             ->first();
 
+        // Calculate when second reminder should be sent
+        $scheduledTime = Carbon::parse($validated['scheduled_time']);
+        $secondReminderAt = $scheduledTime->copy()->addMinutes(self::SECOND_REMINDER_MINUTES);
+
         if ($existing) {
             // Update if already exists
             $existing->update([
                 'sent_at' => now(),
                 'status' => 'sent',
                 'notification_type' => $validated['notification_type'],
+                'reminder_number' => 1,
+                'second_reminder_at' => $secondReminderAt,
             ]);
             $notifLog = $existing;
         } else {
@@ -133,6 +141,8 @@ class NotificationController extends Controller
                 'sent_at' => now(),
                 'status' => 'sent',
                 'notification_type' => $validated['notification_type'],
+                'reminder_number' => 1,
+                'second_reminder_at' => $secondReminderAt,
             ]);
         }
 
@@ -263,6 +273,102 @@ class NotificationController extends Controller
             'success' => true,
             'message' => 'Notification snoozed',
             'snooze_until' => now()->addMinutes($validated['snooze_minutes'])->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * Get pending second reminders for current user
+     * Returns list of medications that haven't been confirmed within the reminder window
+     */
+    public function getSecondReminders(Request $request)
+    {
+        $user = $request->user();
+        $now = now();
+
+        // Get notification logs where:
+        // 1. First reminder was sent (reminder_number = 1)
+        // 2. Second reminder hasn't been sent yet (second_reminder_sent_at is null)
+        // 3. It's time for second reminder (second_reminder_at <= now)
+        // 4. Original medication hasn't been confirmed (medication log status != 'taken')
+        $secondReminders = NotificationLog::join('medication_logs', function($join) {
+            $join->on('notification_logs.medication_schedule_id', '=', 'medication_logs.medication_schedule_id')
+                ->on('notification_logs.user_id', '=', 'medication_logs.user_id');
+        })
+        ->join('medication_schedules', function($join) {
+            $join->on('notification_logs.medication_schedule_id', '=', 'medication_schedules.id');
+        })
+        ->join('medicines', 'medication_schedules.medicine_id', '=', 'medicines.id')
+        ->where('notification_logs.user_id', $user->id)
+        ->where('notification_logs.reminder_number', 1)
+        ->whereNull('notification_logs.second_reminder_sent_at')
+        ->where('notification_logs.second_reminder_at', '<=', $now)
+        ->where('medication_logs.status', '!=', 'taken')
+        ->whereDate('notification_logs.scheduled_time', today())
+        ->select(
+            'notification_logs.id',
+            'notification_logs.medication_schedule_id',
+            'medication_schedules.time',
+            'medicines.name as medicine_name',
+            'medicines.dose as medicine_dose',
+            'medicines.unit as medicine_unit',
+            'notification_logs.scheduled_time'
+        )
+        ->orderBy('notification_logs.scheduled_time')
+        ->get()
+        ->map(function($item) {
+            return [
+                'notification_log_id' => $item->id,
+                'medication_schedule_id' => $item->medication_schedule_id,
+                'medicine_name' => $item->medicine_name,
+                'medicine_dose' => $item->medicine_dose . ' ' . ($item->medicine_unit ?? ''),
+                'medicine_icon' => '💊',
+                'time' => $item->time,
+                'scheduled_datetime' => $item->scheduled_time->toIso8601String(),
+                'reminder_type' => 'second',
+                'date' => today()->toDateString(),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'second_reminders' => $secondReminders,
+            'count' => $secondReminders->count(),
+            'user_timezone' => $user->timezone ?? 'UTC',
+            'current_time' => now()->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * Mark second reminder as sent
+     */
+    public function markSecondReminderSent(Request $request)
+    {
+        $validated = $request->validate([
+            'notification_log_id' => 'required|exists:notification_logs,id',
+            'notification_type' => 'required|in:browser,sound,both',
+        ]);
+
+        $user = $request->user();
+
+        $notifLog = NotificationLog::where('user_id', $user->id)
+            ->where('id', $validated['notification_log_id'])
+            ->first();
+
+        if (!$notifLog) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Notification log not found',
+            ], 404);
+        }
+
+        $notifLog->update([
+            'second_reminder_sent_at' => now(),
+            'notification_type' => $validated['notification_type'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Second reminder tracked',
         ]);
     }
 

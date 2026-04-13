@@ -248,6 +248,11 @@ class NotificationScheduler {
 
         // Check for snoozed items that should re-notify
         await this.checkSnoozedItems(currentTime);
+        
+        // Check for second reminders (only if online)
+        if (this.isOnline) {
+            await this.checkAndNotifySecondReminders();
+        }
     }
 
     /**
@@ -400,6 +405,102 @@ class NotificationScheduler {
             }
         } catch (error) {
             console.error('[NotificationScheduler] Error checking snoozed items:', error);
+        }
+    }
+
+    /**
+     * Check for and send second reminders
+     * Medications that haven't been confirmed after first reminder
+     */
+    async checkAndNotifySecondReminders() {
+        try {
+            console.log('[NotificationScheduler] Checking for second reminders...');
+            
+            const response = await fetch('/api/second-reminders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                },
+                body: JSON.stringify({}),
+            });
+            
+            if (!response.ok) {
+                console.warn('[NotificationScheduler] Failed to fetch second reminders');
+                return;
+            }
+            
+            const data = await response.json();
+            const secondReminders = data.second_reminders || [];
+            
+            console.log(`[NotificationScheduler] Found ${secondReminders.length} second reminders`);
+            
+            // Show notifications for each second reminder
+            for (const reminder of secondReminders) {
+                // Check if in do-not-disturb window
+                if (this.isInDoNotDisturbWindow(new Date().getHours().toString().padStart(2, '0') + ':' + new Date().getMinutes().toString().padStart(2, '0'))) {
+                    console.log('[NotificationScheduler] In do-not-disturb, skipping second reminder');
+                    continue;
+                }
+                
+                try {
+                    // Show second reminder notification
+                    if (window.notificationManager) {
+                        window.notificationManager.show({
+                            title: '💊 Pengingat Kedua - Minum Obat',
+                            body: `${reminder.medicine_name} (${reminder.medicine_dose}) - Jangan lupa minum obat Anda!`,
+                            icon: '⏰',
+                            badge: '⏰',
+                            tag: `medication-reminder-2-${reminder.medication_schedule_id}`,
+                            requireInteraction: true,
+                            actions: [
+                                { action: 'confirm', title: 'Saya sudah minum ✓' },
+                                { action: 'snooze', title: 'Tunda 15 menit' },
+                            ],
+                        });
+
+                        // Play sound if enabled
+                        if (this.preferences.sound_enabled) {
+                            window.notificationManager.playSound();
+                        }
+
+                        // Vibration if enabled
+                        if (this.preferences.vibration_enabled && 'vibrate' in navigator) {
+                            navigator.vibrate([200, 100, 200, 100, 200]);
+                        }
+                    }
+                    
+                    // Mark second reminder as sent
+                    await this.markSecondReminderSent(reminder.notification_log_id);
+                    
+                    console.log('[NotificationScheduler] Second reminder sent for:', reminder.medicine_name);
+                } catch (error) {
+                    console.error('[NotificationScheduler] Error showing second reminder:', error);
+                }
+            }
+        } catch (error) {
+            console.error('[NotificationScheduler] Error checking second reminders:', error);
+        }
+    }
+
+    /**
+     * Mark second reminder as sent
+     */
+    async markSecondReminderSent(notificationLogId) {
+        try {
+            await fetch('/api/second-reminder-sent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                },
+                body: JSON.stringify({
+                    notification_log_id: notificationLogId,
+                    notification_type: this.preferences.sound_enabled ? 'both' : 'browser',
+                }),
+            });
+        } catch (error) {
+            console.error('[NotificationScheduler] Error marking second reminder sent:', error);
         }
     }
 

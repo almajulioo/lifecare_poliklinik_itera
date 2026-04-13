@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class PenggunaController extends Controller
 {
@@ -59,13 +60,27 @@ class PenggunaController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'nim' => 'required|string|unique:users',
-            'prodi' => 'nullable|string',
+            'role_user' => 'required|string|in:mahasiswa,pegawai',
             'password' => 'required|min:8|confirmed',
-        ]);
+        ];
+
+        // NIM is required only for mahasiswa
+        if ($request->input('role_user') === 'mahasiswa') {
+            $rules['nim'] = 'required|string|unique:users';
+            $rules['prodi'] = 'nullable|string';
+        } else {
+            // Pegawai doesn't need NIM, but may have other ID
+            $rules['nim'] = 'nullable|string|unique:users';
+            $rules['prodi'] = 'nullable|string';
+        }
+
+        $validated = $request->validate($rules);
+
+        // Hash the password before saving
+        $validated['password'] = Hash::make($validated['password']);
 
         User::create($validated);
 
@@ -85,12 +100,22 @@ class PenggunaController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        $validated = $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'nim' => 'required|string|unique:users,nim,' . $user->id,
+            'role_user' => 'required|string|in:mahasiswa,pegawai',
             'prodi' => 'nullable|string',
-        ]);
+        ];
+
+        // NIM is required only for mahasiswa
+        if ($request->input('role_user') === 'mahasiswa') {
+            $rules['nim'] = 'required|string|unique:users,nim,' . $user->id;
+        } else {
+            // Pegawai doesn't need NIM
+            $rules['nim'] = 'nullable|string|unique:users,nim,' . $user->id;
+        }
+
+        $validated = $request->validate($rules);
 
         $user->update($validated);
 

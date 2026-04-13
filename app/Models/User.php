@@ -37,8 +37,6 @@ class User extends Authenticatable
             'password' => 'hashed',
             'notification_preferences' => 'array',
             'medical_conditions' => 'array',
-            'medical_conditions' => 'array',
-            'medical_conditions' => 'array',
         ];
     }
 

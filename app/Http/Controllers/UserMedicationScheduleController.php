@@ -62,7 +62,7 @@ class UserMedicationScheduleController extends Controller
 
             $validated = $request->validate([
                 'medicine_id' => ['required', 'exists:medicines,id'],
-                'start_date' => ['required', 'date', 'date_format:Y-m-d', 'today_or_after'],
+                'start_date' => ['required', 'date', 'date_format:Y-m-d'],
                 'end_date' => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:start_date'],
                 'times' => ['required', 'array', 'min:1'],
                 'times.*' => ['required', 'date_format:H:i'],

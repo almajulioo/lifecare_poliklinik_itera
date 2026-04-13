@@ -6,6 +6,19 @@
 @section('content')
 <div class="space-y-4">
 
+    <!-- Session Error Message -->
+    @if(session('error'))
+        <div class="p-4 bg-red-50 border-l-4 border-red-600 rounded-lg">
+            <div class="flex items-start gap-2">
+                <div class="text-red-600 text-lg">✕</div>
+                <div>
+                    <p class="font-semibold text-red-800 text-sm">Terjadi Kesalahan</p>
+                    <p class="text-red-700 text-sm mt-1">{{ session('error') }}</p>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Error Summary -->
     @if($errors->any())
         <div class="p-4 bg-red-50 border-l-4 border-red-600 rounded-lg">

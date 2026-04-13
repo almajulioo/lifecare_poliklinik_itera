@@ -64,14 +64,14 @@
             <h3 class="text-sm font-semibold text-slate-900">Pengaturan</h3>
             
             <a href="{{ route('app.settings') }}" class="block w-full bg-white rounded-lg p-4 border border-slate-200 text-center font-medium text-slate-900 hover:bg-slate-50 transition flex items-center justify-center gap-2">
-                <span>⚙️</span>
+                <span></span>
                 <span>Pengaturan Notifikasi</span>
             </a>
 
             <form method="POST" action="{{ route('logout') }}" class="block">
                 @csrf
                 <button type="submit" class="w-full bg-red-50 rounded-lg p-4 border border-red-200 text-center font-medium text-red-600 hover:bg-red-100 transition flex items-center justify-center gap-2">
-                    <span>🚪</span>
+                    <span></span>
                     <span>Logout</span>
                 </button>
             </form>

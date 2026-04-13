@@ -30,10 +30,13 @@
         <header class="sticky top-0 z-10 bg-white border-b pt-safe">
             <div class="px-4 py-3">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-sm text-gray-500">LifeCare+</div>
-                        <div class="font-semibold text-gray-900">
-                            @yield('header', 'Dashboard')
+                    <div class="flex items-center gap-3">
+                        <img src="/images/logo-itera.png" alt="Logo ITERA" class="h-10 w-10 object-contain">
+                        <div>
+                            <div class="text-sm text-gray-500">LifeCare+</div>
+                            <div class="font-semibold text-gray-900">
+                                @yield('header', 'Poliklinik ITERA')
+                            </div>
                         </div>
                     </div>
                     <!-- Sync Indicator -->

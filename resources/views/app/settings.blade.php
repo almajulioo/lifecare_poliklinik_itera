@@ -5,7 +5,7 @@
 <div class="pb-28">
     {{-- Header --}}
     <div class="bg-white rounded-xl p-4 shadow-sm border mb-4">
-        <h1 class="text-lg font-semibold">⚙️ Pengaturan Notifikasi</h1>
+        <h1 class="text-lg font-semibold">Pengaturan Notifikasi</h1>
         <p class="text-sm text-gray-500 mt-1">Kelola notifikasi pengingat minum obat</p>
     </div>
 

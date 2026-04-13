@@ -4,7 +4,7 @@
 @section('header', 'Jadwal Baru')
 
 @section('content')
-<div class="space-y-4">
+<div class="space-y-4 pb-6">
 
     <!-- Session Error Message -->
     @if(session('error'))
@@ -36,175 +36,190 @@
         </div>
     @endif
 
-    @if(session('warning'))
-        <div class="p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg text-sm">
-            {{ session('warning') }}
-        </div>
-    @endif
-
-    <!-- Form -->
-    <form method="POST" action="{{ route('app.schedules.store') }}" class="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
-        @csrf
-        <input type="hidden" name="source" value="mandiri">
-
-        <!-- Obat -->
-        <div>
-            <label for="medicine_id" class="block text-sm font-semibold text-gray-900 mb-1">
-                Obat <span class="text-red-600">*</span>
-            </label>
-            <select
-                id="medicine_id"
-                name="medicine_id"
-                required
-                class="w-full px-3 py-2 border {{ $errors->has('medicine_id') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
-            >
-                <option value="">-- Pilih --</option>
-                @foreach($medicines as $medicine)
-                    <option value="{{ $medicine->id }}" {{ old('medicine_id') == $medicine->id ? 'selected' : '' }}>
-                        {{ $medicine->name }} ({{ $medicine->dose }} {{ $medicine->unit }})
-                    </option>
-                @endforeach
-            </select>
-            @error('medicine_id')
-                <p class="text-red-600 text-xs mt-2 flex items-center gap-1">
-                    <span>●</span> {{ $message }}
-                </p>
-            @enderror
-        </div>
-
-        <!-- Tanggal Mulai -->
-        <div>
-            <label for="start_date" class="block text-sm font-semibold text-gray-900 mb-1">
-                Mulai <span class="text-red-600">*</span>
-            </label>
-            <input
-                type="date"
-                id="start_date"
-                name="start_date"
-                value="{{ old('start_date') ?? now()->toDateString() }}"
-                required
-                onchange="calculateDuration()"
-                class="w-full px-3 py-2 border {{ $errors->has('start_date') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
-            />
-            @error('start_date')
-                <p class="text-red-600 text-xs mt-2 flex items-center gap-1">
-                    <span>●</span> {{ $message }}
-                </p>
-            @enderror
-        </div>
-
-        <!-- Tanggal Selesai -->
-        <div>
-            <label for="end_date" class="block text-sm font-semibold text-gray-900 mb-1">
-                Selesai (Opsional)
-            </label>
-            <input
-                type="date"
-                id="end_date"
-                name="end_date"
-                value="{{ old('end_date') }}"
-                onchange="calculateDuration()"
-                class="w-full px-3 py-2 border {{ $errors->has('end_date') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
-            />
-            @error('end_date')
-                <p class="text-red-600 text-xs mt-2 flex items-center gap-1">
-                    <span>●</span> {{ $message }}
-                </p>
-            @enderror
-        </div>
-
-        <!-- Jam Minum -->
-        <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-1">
-                Jam Minum <span class="text-red-600">*</span>
-            </label>
-            <div id="time-inputs-container" class="space-y-2">
-                <div class="time-input-wrapper">
-                    <label for="time_1" class="block text-xs text-gray-600 mb-1">Jam ke 1</label>
-                    <input
-                        type="time"
-                        id="time_1"
-                        name="times[]"
-                        value="{{ old('times.0') }}"
-                        required
-                        class="w-full px-3 py-2 border {{ $errors->has('times') || $errors->has('times.0') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
-                    />
+    @if($medicines->isEmpty())
+        <div class="p-4 bg-blue-50 border-l-4 border-blue-600 rounded-lg">
+            <div class="flex items-start gap-2">
+                <div class="text-blue-600 text-lg">ℹ</div>
+                <div>
+                    <p class="font-semibold text-blue-800 text-sm">Belum Ada Obat</p>
+                    <p class="text-blue-700 text-sm mt-1">Anda perlu menambahkan obat terlebih dahulu sebelum membuat jadwal minum obat.</p>
+                    <a href="{{ route('app.medicines.create') }}" class="mt-2 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+                        + Tambah Obat
+                    </a>
                 </div>
             </div>
-            @error('times')
-                <p class="text-red-600 text-xs mt-2 flex items-center gap-1">
-                    <span>●</span> {{ $message }}
-                </p>
-            @enderror
         </div>
+    @else
+        <!-- Form -->
+        <form method="POST" action="{{ route('app.schedules.store') }}" class="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+            @csrf
+            <input type="hidden" name="source" value="mandiri">
 
-        <!-- Frekuensi -->
-        <div>
-            <label for="frequency" class="block text-sm font-semibold text-gray-900 mb-1">
-                Frekuensi (Opsional)
-            </label>
-            <select
-                id="frequency"
-                name="frequency"
-                class="w-full px-3 py-2 border {{ $errors->has('frequency') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
-                onchange="updateTimeInputs()"
-            >
-                <option value="">-- Pilih Frekuensi (Opsional) --</option>
-                <option value="1x sehari" {{ old('frequency') == '1x sehari' ? 'selected' : '' }}>1x sehari</option>
-                <option value="2x sehari" {{ old('frequency') == '2x sehari' ? 'selected' : '' }}>2x sehari</option>
-                <option value="3x sehari" {{ old('frequency') == '3x sehari' ? 'selected' : '' }}>3x sehari</option>
-                <option value="4x sehari" {{ old('frequency') == '4x sehari' ? 'selected' : '' }}>4x sehari</option>
-                <option value="setiap 12 jam" {{ old('frequency') == 'setiap 12 jam' ? 'selected' : '' }}>Setiap 12 jam</option>
-                <option value="setiap 8 jam" {{ old('frequency') == 'setiap 8 jam' ? 'selected' : '' }}>Setiap 8 jam</option>
-                <option value="setiap 6 jam" {{ old('frequency') == 'setiap 6 jam' ? 'selected' : '' }}>Setiap 6 jam</option>
-                <option value="setiap 4 jam" {{ old('frequency') == 'setiap 4 jam' ? 'selected' : '' }}>Setiap 4 jam</option>
-                <option value="saat diperlukan" {{ old('frequency') == 'saat diperlukan' ? 'selected' : '' }}>Saat diperlukan</option>
-            </select>
-            @error('frequency')
-                <p class="text-red-600 text-xs mt-2 flex items-center gap-1">
-                    <span>●</span> {{ $message }}
-                </p>
-            @enderror
-        </div>
+            <!-- Obat -->
+            <div>
+                <label for="medicine_id" class="block text-sm font-semibold text-gray-900 mb-2">
+                    Pilih Obat <span class="text-red-600">*</span>
+                </label>
+                <select
+                    id="medicine_id"
+                    name="medicine_id"
+                    required
+                    class="w-full px-4 py-2 border {{ $errors->has('medicine_id') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
+                >
+                    <option value="">-- Pilih Obat --</option>
+                    @foreach($medicines as $medicine)
+                        <option value="{{ $medicine->id }}" {{ old('medicine_id') == $medicine->id ? 'selected' : '' }}>
+                            {{ $medicine->name }} ({{ $medicine->dose }} {{ $medicine->unit }})
+                        </option>
+                    @endforeach
+                </select>
+                @error('medicine_id')
+                    <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
+                @enderror
+            </div>
 
-        <!-- Durasi -->
-        <div>
-            <label for="duration_days" class="block text-sm font-semibold text-gray-900 mb-1">
-                Durasi (Hari)
-            </label>
-            <input
-                type="number"
-                id="duration_days"
-                name="duration_days"
-                value="{{ old('duration_days') }}"
-                min="1"
-                max="365"
-                placeholder="Contoh: 7"
-                class="w-full px-3 py-2 border {{ $errors->has('duration_days') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
-            />
-            @error('duration_days')
-                <p class="text-red-600 text-xs mt-2 flex items-center gap-1">
-                    <span>●</span> {{ $message }}
-                </p>
-            @enderror
-        </div>
+            <!-- Row: Tanggal Mulai & Selesai -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label for="start_date" class="block text-sm font-semibold text-gray-900 mb-2">
+                        Tanggal Mulai <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                        type="date"
+                        id="start_date"
+                        name="start_date"
+                        value="{{ old('start_date') ?? now()->toDateString() }}"
+                        required
+                        onchange="calculateDuration()"
+                        class="w-full px-4 py-2 border {{ $errors->has('start_date') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
+                    />
+                    @error('start_date')
+                        <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
+                    @enderror
+                </div>
 
-        <!-- Buttons -->
-        <div class="flex gap-2 pt-2">
-            <button
-                type="submit"
-                class="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
-            >
-                Simpan
-            </button>
-            <a
-                href="{{ route('app.schedules.index') }}"
-                class="flex-1 px-4 py-3 bg-gray-300 text-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-400 transition text-center"
-            >
-                Batal
-            </a>
-        </div>
-    </form>
+                <div>
+                    <label for="end_date" class="block text-sm font-semibold text-gray-900 mb-2">
+                        Tanggal Selesai (Opsional)
+                    </label>
+                    <input
+                        type="date"
+                        id="end_date"
+                        name="end_date"
+                        value="{{ old('end_date') }}"
+                        onchange="calculateDuration()"
+                        class="w-full px-4 py-2 border {{ $errors->has('end_date') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
+                    />
+                    @error('end_date')
+                        <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            <!-- Row: Jam Minum & Frekuensi -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">
+                        Jam Minum <span class="text-red-600">*</span>
+                    </label>
+                    <div id="time-inputs-container" class="space-y-2">
+                        <div class="time-input-wrapper">
+                            <label for="time_1" class="block text-xs text-gray-600 mb-1">Jam ke 1</label>
+                            <input
+                                type="time"
+                                id="time_1"
+                                name="times[]"
+                                value="{{ old('times.0') }}"
+                                required
+                                class="w-full px-4 py-2 border {{ $errors->has('times') || $errors->has('times.0') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
+                            />
+                        </div>
+                    </div>
+                    @error('times')
+                        <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="frequency" class="block text-sm font-semibold text-gray-900 mb-2">
+                        Frekuensi (Opsional)
+                    </label>
+                    <select
+                        id="frequency"
+                        name="frequency"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
+                        onchange="updateTimeInputs()"
+                    >
+                        <option value="">-- Pilih Frekuensi --</option>
+                        <option value="1x sehari" {{ old('frequency') == '1x sehari' ? 'selected' : '' }}>1x sehari</option>
+                        <option value="2x sehari" {{ old('frequency') == '2x sehari' ? 'selected' : '' }}>2x sehari</option>
+                        <option value="3x sehari" {{ old('frequency') == '3x sehari' ? 'selected' : '' }}>3x sehari</option>
+                        <option value="4x sehari" {{ old('frequency') == '4x sehari' ? 'selected' : '' }}>4x sehari</option>
+                        <option value="setiap 12 jam" {{ old('frequency') == 'setiap 12 jam' ? 'selected' : '' }}>Setiap 12 jam</option>
+                        <option value="setiap 8 jam" {{ old('frequency') == 'setiap 8 jam' ? 'selected' : '' }}>Setiap 8 jam</option>
+                        <option value="setiap 6 jam" {{ old('frequency') == 'setiap 6 jam' ? 'selected' : '' }}>Setiap 6 jam</option>
+                        <option value="setiap 4 jam" {{ old('frequency') == 'setiap 4 jam' ? 'selected' : '' }}>Setiap 4 jam</option>
+                        <option value="saat diperlukan" {{ old('frequency') == 'saat diperlukan' ? 'selected' : '' }}>Saat diperlukan</option>
+                    </select>
+                    @error('frequency')
+                        <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            <!-- Durasi -->
+            <div>
+                <label for="duration_days" class="block text-sm font-semibold text-gray-900 mb-2">
+                    Durasi (Hari, Opsional)
+                </label>
+                <input
+                    type="number"
+                    id="duration_days"
+                    name="duration_days"
+                    value="{{ old('duration_days') }}"
+                    min="1"
+                    max="365"
+                    placeholder="Jumlah hari"
+                    class="w-full px-4 py-2 border {{ $errors->has('duration_days') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
+                />
+                @error('duration_days')
+                    <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Status Checkbox -->
+            <div class="flex items-center gap-3 py-2">
+                <input
+                    type="checkbox"
+                    id="is_active"
+                    name="is_active"
+                    value="1"
+                    {{ old('is_active', true) ? 'checked' : '' }}
+                    class="w-4 h-4 text-blue-600 rounded"
+                />
+                <label for="is_active" class="text-sm font-medium text-gray-900">
+                    Aktifkan jadwal ini
+                </label>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-3 pt-3 border-t border-gray-200">
+                <button
+                    type="submit"
+                    class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
+                >
+                    Simpan Jadwal
+                </button>
+                <a
+                    href="{{ route('app.schedules.index') }}"
+                    class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition text-center"
+                >
+                    Batal
+                </a>
+            </div>
+        </form>
+    @endif
+
 </div>
 
 <script>
@@ -274,7 +289,7 @@ function updateTimeInputs() {
             input.type = 'time';
             input.id = `time_${i}`;
             input.name = 'times[]';
-            input.className = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition';
+            input.className = 'w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition';
             input.required = true;
             
             // Restore old values if they exist
@@ -287,37 +302,18 @@ function updateTimeInputs() {
             container.appendChild(wrapper);
         }
     } catch (error) {
-        console.error('Error updating time inputs:', error);
+        console.error('Error in updateTimeInputs:', error);
     }
 }
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    try {
-        const frequency = document.getElementById('frequency');
-        if (frequency && frequency.value) {
-            updateTimeInputs();
-        }
-        
-        // Calculate duration on page load if dates are already filled
-        calculateDuration();
-    } catch (error) {
-        console.error('Error initializing form:', error);
-    }
-});
-
 function calculateDuration() {
     try {
-        const startDateInput = document.getElementById('start_date');
-        const endDateInput = document.getElementById('end_date');
+        const startField = document.getElementById('start_date');
+        const endField = document.getElementById('end_date');
         const durationField = document.getElementById('duration_days');
         
-        if (!startDateInput || !endDateInput || !durationField) {
-            return;
-        }
-        
-        const startValue = startDateInput.value;
-        const endValue = endDateInput.value;
+        const startValue = startField.value;
+        const endValue = endField.value;
         
         if (startValue && endValue) {
             // Convert date strings to Date objects

@@ -41,10 +41,6 @@ class UserMedicationScheduleController extends Controller
                 ->orderBy('name', 'asc')
                 ->get();
 
-            if ($medicines->isEmpty()) {
-                return back()->with('warning', 'Belum ada obat yang tersedia. Silakan tambahkan obat terlebih dahulu.');
-            }
-
             return view('app.schedules.create', compact('medicines'));
         } catch (\Exception $e) {
             return redirect()->route('app.schedules.index')

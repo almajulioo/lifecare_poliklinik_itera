@@ -17,11 +17,12 @@ class MedicationSchedulePolicy
     }
 
     /**
-     * Only ADMIN can create medication schedules (prescriptions)
+     * PATIENT can create their own medication schedules, ADMIN can create for any patient
      */
     public function create($user): bool
     {
-        return $this->isAdmin($user);
+        // Both ADMIN and PATIENT (User) can create schedules
+        return $user instanceof User || $this->isAdmin($user);
     }
 
     /**

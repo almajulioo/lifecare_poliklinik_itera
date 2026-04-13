@@ -112,7 +112,7 @@
             </a>
 
             {{-- Buat Jadwal Minum Obat --}}
-            <a href="{{ route('app.schedules.create') }}" class="bg-white rounded-2xl p-6 flex flex-col items-center justify-center border border-gray-100 hover:border-purple-300 hover:shadow-md transition">
+            <a href="{{ route('app.schedules.upcoming') }}" class="bg-white rounded-2xl p-6 flex flex-col items-center justify-center border border-gray-100 hover:border-purple-300 hover:shadow-md transition">
                 <svg class="w-8 h-8 mb-2 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M5 3a2 2 0 012-2h10a2 2 0 012 2v2h4a2 2 0 012 2v13a2 2 0 01-2 2H2a2 2 0 01-2-2V7a2 2 0 012-2h4V3zM7 5h10V3H7v2z"></path>
                 </svg>

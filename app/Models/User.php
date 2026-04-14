@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\MedicationSchedule;
 use App\Models\MedicationLog;
+use App\Notifications\ResetPassword;
 
 class User extends Authenticatable
 {
@@ -38,6 +39,14 @@ class User extends Authenticatable
             'notification_preferences' => 'array',
             'medical_conditions' => 'array',
         ];
+    }
+
+    /**
+     * Kirim notification reset password custom
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPassword($token));
     }
 
     public function medicationSchedules()

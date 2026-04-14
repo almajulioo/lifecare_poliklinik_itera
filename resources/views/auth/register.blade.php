@@ -1,17 +1,16 @@
 <x-guest-layout>
     <!-- Title Section -->
-    <div class="text-center mb-8 px-6">
-        <h1 class="text-3xl font-bold text-gray-900 mb-3">Create Your Account</h1>
-        <p class="text-sm text-gray-600 mb-3">Join us to manage your clinic appointments and healthcare efficiently</p>
-        <p class="text-sm text-gray-600">Already have an account? <a href="{{ route('login') }}" style="color: var(--primary-color);" class="font-semibold hover:underline">Sign in</a></p>
+    <div class="text-center px-6 mt-4">
+        <h1 class="text-3xl font-bold text-gray-900 mb-3">Buat Akun Baru</h1>
+        <p class="text-sm text-gray-600">Sudah punya akun? <a href="{{ route('login') }}" style="color: var(--black-color);" class="font-semibold hover:underline">Masuk</a></p>
     </div>
 
-    <form method="POST" action="{{ route('register') }}" class="space-y-7 p-6">
+    <form method="POST" action="{{ route('register') }}" class="space-y-2 p-6">
         @csrf
 
         <!-- Role -->
         <div>
-            <label for="role_user" class="block font-semibold text-sm text-gray-800 mb-2.5">Select Your Role</label>
+            <label for="role_user" class="block font-semibold text-sm text-gray-800 mb-2.5">Pilih Status</label>
             <select
                 id="role_user"
                 name="role_user"
@@ -19,7 +18,7 @@
                 class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition bg-white" 
                 style="focus:ring-color: var(--primary-color);"
             >
-                <option value="">-- Pilih Role --</option>
+                <option value="">-- Pilih Status --</option>
                 <option value="mahasiswa" {{ old('role_user') === 'mahasiswa' ? 'selected' : '' }}>Mahasiswa</option>
                 <option value="pegawai" {{ old('role_user') === 'pegawai' ? 'selected' : '' }}>Pegawai</option>
             </select>
@@ -28,7 +27,7 @@
 
         <!-- Name -->
         <div>
-            <label for="name" class="block font-semibold text-sm text-gray-800 mb-2.5">Full Name</label>
+            <label for="name" class="block font-semibold text-sm text-gray-800 mb-2.5">Nama Lengkap</label>
             <input
                 id="name"
                 type="text"
@@ -37,7 +36,7 @@
                 required
                 autofocus
                 autocomplete="name"
-                placeholder="Enter your full name"
+                placeholder="Masukkan nama lengkap Anda"
                 class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition" 
                 style="focus:ring-color: var(--primary-color);"
             />
@@ -45,15 +44,15 @@
         </div>
 
         <!-- NIM + Prodi (khusus Mahasiswa) -->
-        <div id="mahasiswaFields" style="display:none;" class="space-y-7 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div id="mahasiswaFields" style="display:none;" class="space-y-2 p-4 bg-blue-50 rounded-lg border border-blue-200 mt-2">
             <div>
-                <label for="nim" class="block font-semibold text-sm text-gray-800 mb-2.5">Student ID (NIM)</label>
+                <label for="nim" class="block font-semibold text-sm text-gray-800 mb-2.5">NIM</label>
                 <input
                     id="nim"
                     type="text"
                     name="nim"
                     value="{{ old('nim') }}"
-                    placeholder="Enter your student ID"
+                    placeholder="Masukkan NIM Anda"
                     class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition" 
                     style="focus:ring-color: var(--primary-color);"
                 />
@@ -62,22 +61,63 @@
 
             <div>
                 <label for="prodi" class="block font-semibold text-sm text-gray-800 mb-2.5">Program of Study</label>
-                <input
+                <select
                     id="prodi"
-                    type="text"
                     name="prodi"
-                    value="{{ old('prodi') }}"
-                    placeholder="Enter your program of study"
-                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition" 
+                    required
+                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition bg-white" 
                     style="focus:ring-color: var(--primary-color);"
-                />
+                >
+                    <option value="">-- Pilih Program Studi --</option>
+                    <option value="Arsitektur" {{ old('prodi') === 'Arsitektur' ? 'selected' : '' }}>Arsitektur</option>
+                    <option value="Arsitektur Lanskap" {{ old('prodi') === 'Arsitektur Lanskap' ? 'selected' : '' }}>Arsitektur Lanskap</option>
+                    <option value="Biologi" {{ old('prodi') === 'Biologi' ? 'selected' : '' }}>Biologi</option>
+                    <option value="Desain Komunikasi Visual" {{ old('prodi') === 'Desain Komunikasi Visual' ? 'selected' : '' }}>Desain Komunikasi Visual</option>
+                    <option value="Farmasi" {{ old('prodi') === 'Farmasi' ? 'selected' : '' }}>Farmasi</option>
+                    <option value="Fisika" {{ old('prodi') === 'Fisika' ? 'selected' : '' }}>Fisika</option>
+                    <option value="Kimia" {{ old('prodi') === 'Kimia' ? 'selected' : '' }}>Kimia</option>
+                    <option value="Matematika" {{ old('prodi') === 'Matematika' ? 'selected' : '' }}>Matematika</option>
+                    <option value="Pariwisata" {{ old('prodi') === 'Pariwisata' ? 'selected' : '' }}>Pariwisata</option>
+                    <option value="Perencanaan Wilayah dan Kota" {{ old('prodi') === 'Perencanaan Wilayah dan Kota' ? 'selected' : '' }}>Perencanaan Wilayah dan Kota</option>
+                    <option value="Rekayasa Instrumentasi dan Automasi" {{ old('prodi') === 'Rekayasa Instrumentasi dan Automasi' ? 'selected' : '' }}>Rekayasa Instrumentasi dan Automasi</option>
+                    <option value="Rekayasa Kebutanan" {{ old('prodi') === 'Rekayasa Kebutanan' ? 'selected' : '' }}>Rekayasa Kebutanan</option>
+                    <option value="Rekayasa Keolahragan" {{ old('prodi') === 'Rekayasa Keolahragan' ? 'selected' : '' }}>Rekayasa Keolahragan</option>
+                    <option value="Rekayasa Kosmetik" {{ old('prodi') === 'Rekayasa Kosmetik' ? 'selected' : '' }}>Rekayasa Kosmetik</option>
+                    <option value="Rekayasa Minyak dan Gas" {{ old('prodi') === 'Rekayasa Minyak dan Gas' ? 'selected' : '' }}>Rekayasa Minyak dan Gas</option>
+                    <option value="Rekayasa Tata Kelola Air Terpadu" {{ old('prodi') === 'Rekayasa Tata Kelola Air Terpadu' ? 'selected' : '' }}>Rekayasa Tata Kelola Air Terpadu</option>
+                    <option value="Sains Aktuaria" {{ old('prodi') === 'Sains Aktuaria' ? 'selected' : '' }}>Sains Aktuaria</option>
+                    <option value="Sains Atmosfir dan Keplanetan" {{ old('prodi') === 'Sains Atmosfir dan Keplanetan' ? 'selected' : '' }}>Sains Atmosfir dan Keplanetan</option>
+                    <option value="Sains Data" {{ old('prodi') === 'Sains Data' ? 'selected' : '' }}>Sains Data</option>
+                    <option value="Sains Lingkungan Kelautan" {{ old('prodi') === 'Sains Lingkungan Kelautan' ? 'selected' : '' }}>Sains Lingkungan Kelautan</option>
+                    <option value="Teknik Biomedis" {{ old('prodi') === 'Teknik Biomedis' ? 'selected' : '' }}>Teknik Biomedis</option>
+                    <option value="Teknik Biosistem" {{ old('prodi') === 'Teknik Biosistem' ? 'selected' : '' }}>Teknik Biosistem</option>
+                    <option value="Teknik Elektro" {{ old('prodi') === 'Teknik Elektro' ? 'selected' : '' }}>Teknik Elektro</option>
+                    <option value="Teknik Fisika" {{ old('prodi') === 'Teknik Fisika' ? 'selected' : '' }}>Teknik Fisika</option>
+                    <option value="Teknik Geofisika" {{ old('prodi') === 'Teknik Geofisika' ? 'selected' : '' }}>Teknik Geofisika</option>
+                    <option value="Teknik Geologi" {{ old('prodi') === 'Teknik Geologi' ? 'selected' : '' }}>Teknik Geologi</option>
+                    <option value="Teknik Geomatika" {{ old('prodi') === 'Teknik Geomatika' ? 'selected' : '' }}>Teknik Geomatika</option>
+                    <option value="Teknik Industri" {{ old('prodi') === 'Teknik Industri' ? 'selected' : '' }}>Teknik Industri</option>
+                    <option value="Teknik Informatika" {{ old('prodi') === 'Teknik Informatika' ? 'selected' : '' }}>Teknik Informatika</option>
+                    <option value="Teknik Kelautan" {{ old('prodi') === 'Teknik Kelautan' ? 'selected' : '' }}>Teknik Kelautan</option>
+                    <option value="Teknik Kimia" {{ old('prodi') === 'Teknik Kimia' ? 'selected' : '' }}>Teknik Kimia</option>
+                    <option value="Teknik Lingkungan" {{ old('prodi') === 'Teknik Lingkungan' ? 'selected' : '' }}>Teknik Lingkungan</option>
+                    <option value="Teknik Material" {{ old('prodi') === 'Teknik Material' ? 'selected' : '' }}>Teknik Material</option>
+                    <option value="Teknik Mesin" {{ old('prodi') === 'Teknik Mesin' ? 'selected' : '' }}>Teknik Mesin</option>
+                    <option value="Teknik Perkeretaapian" {{ old('prodi') === 'Teknik Perkeretaapian' ? 'selected' : '' }}>Teknik Perkeretaapian</option>
+                    <option value="Teknik Pertambangan" {{ old('prodi') === 'Teknik Pertambangan' ? 'selected' : '' }}>Teknik Pertambangan</option>
+                    <option value="Teknik Sipil" {{ old('prodi') === 'Teknik Sipil' ? 'selected' : '' }}>Teknik Sipil</option>
+                    <option value="Teknik Sistem Energi" {{ old('prodi') === 'Teknik Sistem Energi' ? 'selected' : '' }}>Teknik Sistem Energi</option>
+                    <option value="Teknik Telekomunikasi" {{ old('prodi') === 'Teknik Telekomunikasi' ? 'selected' : '' }}>Teknik Telekomunikasi</option>
+                    <option value="Teknologi Industri Pertanian" {{ old('prodi') === 'Teknologi Industri Pertanian' ? 'selected' : '' }}>Teknologi Industri Pertanian</option>
+                    <option value="Teknologi Pangan" {{ old('prodi') === 'Teknologi Pangan' ? 'selected' : '' }}>Teknologi Pangan</option>
+                </select>
                 <x-input-error :messages="$errors->get('prodi')" class="mt-2 text-sm" />
             </div>
         </div>
 
         <!-- Email Address -->
         <div>
-            <label for="email" class="block font-semibold text-sm text-gray-800 mb-2.5">Email Address</label>
+            <label for="email" class="block font-semibold text-sm text-gray-800 mb-2.5">Email</label>
             <input
                 id="email"
                 type="email"
@@ -85,7 +125,7 @@
                 value="{{ old('email') }}"
                 required
                 autocomplete="username"
-                placeholder="you@example.com"
+                placeholder="you.123456@itera.ac.id"
                 class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition" 
                 style="focus:ring-color: var(--primary-color);"
             />
@@ -101,7 +141,7 @@
                 name="password"
                 required
                 autocomplete="new-password"
-                placeholder="Create a strong password"
+                placeholder="Buat password yang kuat"
                 class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition" 
                 style="focus:ring-color: var(--primary-color);"
             />
@@ -110,14 +150,14 @@
 
         <!-- Confirm Password -->
         <div>
-            <label for="password_confirmation" class="block font-semibold text-sm text-gray-800 mb-2.5">Confirm Password</label>
+            <label for="password_confirmation" class="block font-semibold text-sm text-gray-800 mb-2.5">Konfirmasi Password</label>
             <input
                 id="password_confirmation"
                 type="password"
                 name="password_confirmation"
                 required
                 autocomplete="new-password"
-                placeholder="Confirm your password"
+                placeholder="Konfirmasi password Anda"
                 class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition" 
                 style="focus:ring-color: var(--primary-color);"
             />
@@ -131,7 +171,7 @@
                 class="w-full py-3.5 rounded-lg font-bold text-white text-base transition hover:opacity-90 shadow-sm"
                 style="background-color: var(--primary-color);"
             >
-                Create Account
+                Daftar
             </button>
         </div>
 

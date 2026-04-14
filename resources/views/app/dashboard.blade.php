@@ -10,14 +10,17 @@
             <div>
                 <div class="text-sm text-gray-500">
                     @php
-                        $hour = now()->hour;
+                        $userTimezone = auth()->user()->timezone ?? 'Asia/Jakarta';
+                        $userTime = \Carbon\Carbon::now($userTimezone);
+                        $userTime->setLocale('id');
+                        $hour = (int)$userTime->format('H');
                         $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 17 ? 'Selamat Siang' : 'Selamat Malam');
                     @endphp
                     {{ $greeting }},
                 </div>
                 <div class="text-xl font-bold text-gray-900">{{ auth()->user()->name }}</div>
                 <div class="text-xs text-gray-400 mt-1">
-                    {{ now()->translatedFormat('l, F j, Y') }}
+                    {{ $userTime->translatedFormat('l, j F Y') }}
                 </div>
             </div>
             <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">

@@ -54,8 +54,21 @@
         <div class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-0 relative z-10">
             <!-- Mobile Container -->
             <div class="w-full max-w-md">
-                <!-- Content with semi-transparent white background -->
-                <div class="bg-white bg-opacity-50 rounded-xl shadow-2xl overflow-hidden border border-gray-200 border-opacity-50">
+                <!-- Header with Logo -->
+                <div class="pb-7 text-center">
+                    <div class="flex flex-col items-center gap-2.5">
+                        <!-- ITERA Logo -->
+                        <img src="{{ asset('images/logo-itera.png') }}" alt="ITERA Logo" class="h-16 w-auto">
+                        <!-- Poliklinik Text -->
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">POLIKLINIK ITERA</h1>
+                            <p class="text-xs text-gray-600 mt-0.5 pb-5">Institut Teknologi Sumatera</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content with transparent background -->
+                <div class="bg-white bg-opacity-40 rounded-xl shadow-lg overflow-hidden border border-white border-opacity-50 backdrop-blur-sm">
                     {{ $slot }}
                 </div>
             </div>

@@ -1,5 +1,6 @@
 <?php
 
+// Kontrol untuk kirim link reset password ke email user
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -10,32 +11,26 @@ use Illuminate\View\View;
 
 class PasswordResetLinkController extends Controller
 {
-    /**
-     * Display the password reset link request view.
-     */
+    // Tampilkan form lupa password
     public function create(): View
     {
         return view('auth.forgot-password');
     }
 
-    /**
-     * Handle an incoming password reset link request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
+    // Proses permintaan reset password - kirim link ke email
     public function store(Request $request): RedirectResponse
     {
+        // Validasi email
         $request->validate([
             'email' => ['required', 'email'],
         ]);
 
-        // We will send the password reset link to this user. Once we have attempted
-        // to send the link, we will examine the response then see the message we
-        // need to show to the user. Finally, we'll send out a proper response.
+        // Kirim link reset password ke email user
         $status = Password::sendResetLink(
             $request->only('email')
         );
 
+        // Arahkan berdasarkan status pengiriman
         return $status == Password::RESET_LINK_SENT
                     ? back()->with('status', __($status))
                     : back()->withInput($request->only('email'))

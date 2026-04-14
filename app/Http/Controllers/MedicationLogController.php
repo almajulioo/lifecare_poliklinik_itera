@@ -1,5 +1,6 @@
 <?php
 
+// Kontrol untuk mencatat log pengambilan obat user
 namespace App\Http\Controllers;
 
 use App\Models\MedicationLog;
@@ -9,19 +10,16 @@ use Carbon\Carbon;
 
 class MedicationLogController extends Controller
 {
-    /**
-     * Take medication - handles both online and offline scenarios
-     */
+    // Catat obat yang sudah diminum (online & offline)
     public function take(Request $request, MedicationSchedule $schedule)
     {
         $this->authorize('confirmIntake', $schedule);
 
-        // Check if this should be queued offline
+        // Cek apakah request offline atau online
         $offline = $request->input('offline', false);
         
         if ($offline) {
-            // Return optimistic response for offline queueing
-            // Client akan queue ini di offline_queue dan sync nanti
+            // Response untuk offline - client akan queue ini
             return response()->json([
                 'success' => true,
                 'offline' => true,
@@ -31,7 +29,7 @@ class MedicationLogController extends Controller
             ]);
         }
 
-        // Normal online flow
+        // Online flow: simpan log ke database
         MedicationLog::updateOrCreate(
             [
                 'user_id' => auth()->id(),
@@ -47,15 +45,10 @@ class MedicationLogController extends Controller
         return back()->with('success', 'Mantap! Kamu sudah konfirmasi minum obat.');
     }
 
-    /**
-     * Sync offline medication logs
-     * Enhanced version with:
-     * - Conflict detection (already taken)
-     * - Better error responses
-     * - Detailed sync tracking
-     */
+    // Sinkronisasi log obat offline
     public function syncOfflineLogs(Request $request)
     {
+        // Validasi data log yang dikirim
         $validated = $request->validate([
             'logs' => 'required|array',
             'logs.*.offlineId' => 'required|string',
@@ -72,12 +65,12 @@ class MedicationLogController extends Controller
 
         foreach ($validated['logs'] ?? [] as $logData) {
             try {
-                // Verify schedule belongs to user and user can confirm
+                // Verifikasi jadwal milik user
                 $schedule = MedicationSchedule::findOrFail($logData['scheduleId']);
                 
                 $this->authorize('confirmIntake', $schedule);
 
-                // Check for conflicts: Already taken in last 2 hours
+                // Deteksi konflik: obat sudah diminum dalam 2 jam terakhir
                 $existingLog = MedicationLog::where('user_id', $userId)
                     ->where('medication_schedule_id', $schedule->id)
                     ->where('status', 'taken')
@@ -85,8 +78,7 @@ class MedicationLogController extends Controller
                     ->first();
 
                 if ($existingLog) {
-                    // Conflict detected - medication already confirmed in last 2 hours
-                    // Still mark as synced (since it's already confirmed)
+                    // Ada konflik - obat sudah dikonfirmasi
                     $conflictIds[] = $logData['offlineId'];
                     
                     \Log::info('Medication conflict detected', [
@@ -98,14 +90,14 @@ class MedicationLogController extends Controller
                     continue;
                 }
 
-                // Create or update the medication log
+                // Buat atau update log obat yang diminum
                 $log = MedicationLog::updateOrCreate(
                     [
                         'user_id' => $userId,
                         'medication_schedule_id' => $schedule->id,
                     ],
                     [
-                        'status' => 'taken', // Force to taken, ignore pending
+                        'status' => 'taken',
                         'taken_at' => $logData['taken_at'],
                         'note' => $logData['note'] ?? null,
                         'offline_synced' => true,
@@ -152,24 +144,22 @@ class MedicationLogController extends Controller
         ]);
     }
 
-    /**
-     * Get sync status - how many pending logs are there
-     */
+    // Ambil status sinkronisasi: berapa banyak log yang pending
     public function syncStatus(Request $request)
     {
         $userId = auth()->id();
         
-        // Get pending logs count
+        // Hitung log pending
         $pendingCount = MedicationLog::where('user_id', $userId)
             ->where('status', 'pending')
             ->count();
 
-        // Get today's count
+        // Hitung total log hari ini
         $todayCount = MedicationLog::where('user_id', $userId)
             ->whereDate('created_at', today())
             ->count();
 
-        // Get compliance stats
+        // Hitung log yang diminum hari ini
         $takenCount = MedicationLog::where('user_id', $userId)
             ->whereDate('created_at', today())
             ->where('status', 'taken')
@@ -184,9 +174,7 @@ class MedicationLogController extends Controller
         ]);
     }
 
-    /**
-     * Get medication schedule details for notification modal
-     */
+    // Ambil detail jadwal untuk modal notifikasi
     public function getScheduleDetails(MedicationSchedule $schedule)
     {
         $this->authorize('view', $schedule);
@@ -201,11 +189,10 @@ class MedicationLogController extends Controller
         ]);
     }
 
-    /**
-     * API: Record medication taken via notification modal
-     */
+    // API: Catat obat yang sudah diminum dari modal notifikasi
     public function medicationTaken(Request $request)
     {
+        // Validasi input
         $validated = $request->validate([
             'medication_schedule_id' => 'required|exists:medication_schedules,id',
             'taken_at' => 'nullable|date_format:Y-m-d\TH:i:s.000\Z',
@@ -215,7 +202,7 @@ class MedicationLogController extends Controller
         $schedule = MedicationSchedule::find($validated['medication_schedule_id']);
         $this->authorize('confirmIntake', $schedule);
 
-        // Create or update medication log
+        // Buat atau update log
         $log = MedicationLog::updateOrCreate(
             [
                 'user_id' => auth()->id(),
@@ -235,11 +222,10 @@ class MedicationLogController extends Controller
         ]);
     }
 
-    /**
-     * API: Snooze medication reminder
-     */
+    // API: Snooze/tunda notifikasi obat
     public function medicationSnooze(Request $request)
     {
+        // Validasi input
         $validated = $request->validate([
             'medication_schedule_id' => 'required|exists:medication_schedules,id',
             'snooze_minutes' => 'nullable|integer|min:5|max:120',
@@ -250,7 +236,7 @@ class MedicationLogController extends Controller
 
         $snoozeMinutes = $validated['snooze_minutes'] ?? 15;
 
-        // Store snooze info in cache to skip notification for this duration
+        // Simpan snooze ke cache, skip notifikasi untuk durasi tersebut
         $cacheKey = "medication_snoozed_{$schedule->id}";
         \Cache::put($cacheKey, true, now()->addMinutes($snoozeMinutes));
 

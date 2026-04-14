@@ -1,5 +1,6 @@
 <?php
 
+// Kontrol untuk mengelola notifikasi dan preferensi user
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -10,19 +11,17 @@ use Carbon\Carbon;
 
 class NotificationController extends Controller
 {
-    // How many minutes after scheduled time to send second reminder (if not confirmed)
+    // Waktu untuk reminder kedua (30 menit setelah jadwal)
     const SECOND_REMINDER_MINUTES = 30;
-    /**
-     * Get today's notification times (schedules that should trigger notifications)
-     * Returns list of medication times for today and tomorrow
-     */
+    
+    // Ambil waktu notifikasi hari ini dan besok (jadwal yang perlu notifikasi)
     public function getNotificationTimes(Request $request)
     {
         $user = $request->user();
         $today = today();
         $tomorrow = $today->addDay();
 
-        // TODAY'S SCHEDULES
+        // Ambil jadwal obat hari ini
         $todaySchedules = MedicationSchedule::with(['medicine'])
             ->where('user_id', $user->id)
             ->where('is_active', true)
@@ -45,7 +44,7 @@ class NotificationController extends Controller
             ->limit(5)
             ->get();
 
-        // Get already taken today
+        // Ambil obat yang sudah diminum hari ini
         $takenToday = MedicationLog::where('user_id', $user->id)
             ->whereDate('created_at', $today)
             ->where('status', 'taken')
@@ -99,11 +98,10 @@ class NotificationController extends Controller
         ]);
     }
 
-    /**
-     * Mark notification as sent (for tracking)
-     */
+    // Catat notifikasi yang sudah dikirim (untuk tracking)
     public function markNotificationSent(Request $request)
     {
+        // Validasi input
         $validated = $request->validate([
             'medication_schedule_id' => 'required|exists:medication_schedules,id',
             'scheduled_time' => 'required|date',
@@ -112,18 +110,18 @@ class NotificationController extends Controller
 
         $user = $request->user();
 
-        // Check if already tracked today
+        // Cek apakah sudah tercatat hari ini
         $existing = NotificationLog::where('user_id', $user->id)
             ->where('medication_schedule_id', $validated['medication_schedule_id'])
             ->whereDate('scheduled_time', today())
             ->first();
 
-        // Calculate when second reminder should be sent
+        // Hitung waktu reminder kedua
         $scheduledTime = Carbon::parse($validated['scheduled_time']);
         $secondReminderAt = $scheduledTime->copy()->addMinutes(self::SECOND_REMINDER_MINUTES);
 
         if ($existing) {
-            // Update if already exists
+            // Update jika sudah ada
             $existing->update([
                 'sent_at' => now(),
                 'status' => 'sent',
@@ -133,7 +131,7 @@ class NotificationController extends Controller
             ]);
             $notifLog = $existing;
         } else {
-            // Create new notification log
+            // Buat notifikasi log baru
             $notifLog = NotificationLog::create([
                 'user_id' => $user->id,
                 'medication_schedule_id' => $validated['medication_schedule_id'],
@@ -153,22 +151,21 @@ class NotificationController extends Controller
         ]);
     }
 
-    /**
-     * Get user notification preferences
-     */
+    // Ambil preferensi notifikasi user
     public function getPreferences(Request $request)
     {
         $user = $request->user();
 
-        // Get from JSON field if exists, or default
+        // Ambil dari JSON field atau default
         $prefs = json_decode($user->notification_preferences ?? '{}', true);
 
+        // Default preferences
         $defaults = [
             'enabled' => true,
-            'dnd_start' => '22:00',  // Do not disturb start
-            'dnd_end' => '08:00',    // Do not disturb end
+            'dnd_start' => '22:00',
+            'dnd_end' => '08:00',
             'sound_enabled' => true,
-            'advance_minutes' => 0,  // How many minutes before to notify (0 = on time)
+            'advance_minutes' => 0,
             'vibration_enabled' => true,
             'timezone' => $user->timezone ?? 'UTC',
         ];
@@ -179,11 +176,10 @@ class NotificationController extends Controller
         ]);
     }
 
-    /**
-     * Save user notification preferences
-     */
+    // Simpan preferensi notifikasi user
     public function savePreferences(Request $request)
     {
+        // Validasi input preferensi
         $validated = $request->validate([
             'enabled' => 'boolean',
             'dnd_start' => 'required|date_format:H:i',
@@ -195,6 +191,7 @@ class NotificationController extends Controller
         ]);
 
         $user = $request->user();
+        // Simpan preferensi ke database
         $user->update([
             'notification_preferences' => json_encode($validated),
             'timezone' => $validated['timezone'] ?? $user->timezone,
@@ -207,15 +204,14 @@ class NotificationController extends Controller
         ]);
     }
 
-    /**
-     * Check if should notify based on preferences and current time
-     */
+    // Cek apakah harus kirim notifikasi (cek preferensi & DND)
     public function shouldNotify(Request $request)
     {
         $user = $request->user();
+        // Ambil preferensi dari JSON
         $prefs = json_decode($user->notification_preferences ?? '{}', true);
 
-        // Defaults
+        // Default values
         $enabled = $prefs['enabled'] ?? true;
         $dndStart = $prefs['dnd_start'] ?? '22:00';
         $dndEnd = $prefs['dnd_end'] ?? '08:00';
@@ -224,17 +220,17 @@ class NotificationController extends Controller
             return response()->json(['should_notify' => false, 'reason' => 'notifications_disabled']);
         }
 
-        // Check do-not-disturb window
+        // Cek jendela do-not-disturb
         $now = now();
         $currentTime = $now->format('H:i');
 
-        // Handle overnight DND (e.g., 22:00 - 08:00)
+        // Handle DND overnight (e.g., 22:00 - 08:00)
         $isDnd = false;
         if ($dndStart > $dndEnd) {
-            // Overnight range
+            // Range overnight
             $isDnd = $currentTime >= $dndStart || $currentTime < $dndEnd;
         } else {
-            // Same-day range
+            // Range same-day
             $isDnd = $currentTime >= $dndStart && $currentTime < $dndEnd;
         }
 
@@ -245,11 +241,10 @@ class NotificationController extends Controller
         return response()->json(['should_notify' => true, 'reason' => 'ok']);
     }
 
-    /**
-     * Mark notification as snoozed
-     */
+    // Tunda/snooze notifikasi obat
     public function snoozeNotification(Request $request)
     {
+        // Validasi input
         $validated = $request->validate([
             'medication_schedule_id' => 'required|exists:medication_schedules,id',
             'snooze_minutes' => 'required|integer|min:5|max:120',
@@ -257,6 +252,7 @@ class NotificationController extends Controller
 
         $user = $request->user();
 
+        // Update status notifikasi menjadi snoozed
         $notifLog = NotificationLog::where('user_id', $user->id)
             ->where('medication_schedule_id', $validated['medication_schedule_id'])
             ->whereDate('scheduled_time', today())
@@ -276,20 +272,13 @@ class NotificationController extends Controller
         ]);
     }
 
-    /**
-     * Get pending second reminders for current user
-     * Returns list of medications that haven't been confirmed within the reminder window
-     */
+    // Ambil reminder kedua yang pending (obat belum dikonfirmasi dalam 30 menit)
     public function getSecondReminders(Request $request)
     {
         $user = $request->user();
         $now = now();
 
-        // Get notification logs where:
-        // 1. First reminder was sent (reminder_number = 1)
-        // 2. Second reminder hasn't been sent yet (second_reminder_sent_at is null)
-        // 3. It's time for second reminder (second_reminder_at <= now)
-        // 4. Original medication hasn't been confirmed (medication log status != 'taken')
+        // Query reminder kedua yang pending maupun belum dikirim
         $secondReminders = NotificationLog::join('medication_logs', function($join) {
             $join->on('notification_logs.medication_schedule_id', '=', 'medication_logs.medication_schedule_id')
                 ->on('notification_logs.user_id', '=', 'medication_logs.user_id');
@@ -338,11 +327,10 @@ class NotificationController extends Controller
         ]);
     }
 
-    /**
-     * Mark second reminder as sent
-     */
+    // Catat reminder kedua yang sudah dikirim
     public function markSecondReminderSent(Request $request)
     {
+        // Validasi input
         $validated = $request->validate([
             'notification_log_id' => 'required|exists:notification_logs,id',
             'notification_type' => 'required|in:browser,sound,both',
@@ -350,6 +338,7 @@ class NotificationController extends Controller
 
         $user = $request->user();
 
+        // Update notification log
         $notifLog = NotificationLog::where('user_id', $user->id)
             ->where('id', $validated['notification_log_id'])
             ->first();
@@ -361,6 +350,7 @@ class NotificationController extends Controller
             ], 404);
         }
 
+        // Update waktu reminder kedua dikirim
         $notifLog->update([
             'second_reminder_sent_at' => now(),
             'notification_type' => $validated['notification_type'],
@@ -372,17 +362,17 @@ class NotificationController extends Controller
         ]);
     }
 
-    /**
-     * Dismiss notification (don't remind me today)
-     */
+    // Abaikan notifikasi (jangan ingatkan hari ini)
     public function dismissNotification(Request $request)
     {
+        // Validasi input
         $validated = $request->validate([
             'medication_schedule_id' => 'required|exists:medication_schedules,id',
         ]);
 
         $user = $request->user();
 
+        // Cari atau buat notifikasi log dengan status dismissed
         $notifLog = NotificationLog::where('user_id', $user->id)
             ->where('medication_schedule_id', $validated['medication_schedule_id'])
             ->whereDate('scheduled_time', today())

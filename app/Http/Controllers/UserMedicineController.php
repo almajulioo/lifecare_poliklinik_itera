@@ -1,5 +1,6 @@
 <?php
 
+// Kontrol untuk mengelola daftar obat user (obat pribadi + obat dari jadwal)
 namespace App\Http\Controllers;
 
 use App\Models\Medicine;
@@ -7,47 +8,41 @@ use Illuminate\Http\Request;
 
 class UserMedicineController extends Controller
 {
-    /**
-     * Show list of user's medicines (own + scheduled)
-     * Include both PATIENT medicines AND medicines used in schedules
-     */
+    // Tampilkan daftar obat user (obat pribadi + obat dari jadwal)
     public function index()
     {
         $userId = auth()->id();
         
-        // Get medicines that user created themselves (PATIENT)
+        // Ambil obat pribadi yang dibuat user
         $ownMedicines = Medicine::userMedicines($userId)->get();
         
-        // Get all medicines used in user's schedules (admin prescriptions)
+        // Ambil obat dari jadwal yang sudah dibuat admin
         $scheduledMedicines = Medicine::whereIn('id', function($query) use ($userId) {
             $query->select('medicine_id')
                   ->from('medication_schedules')
                   ->where('user_id', $userId);
         })->get();
         
-        // Merge and get unique medicines (avoid duplicates)
+        // Gabung dan hapus duplikat
         $allMedicines = $ownMedicines->merge($scheduledMedicines)->unique('id');
         
         return view('app.medications.index', compact('allMedicines'));
     }
 
-    /**
-     * Show create form untuk tambah obat user
-     */
+    // Tampilkan form untuk tambah obat
     public function create()
     {
         return view('app.medicines.create');
     }
 
-    /**
-     * Store medicine untuk user
-     */
+    // Simpan obat baru ke database
     public function store(Request $request)
     {
         $this->authorize('create', Medicine::class);
 
         $userId = auth()->id();
 
+        // Validasi input obat
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'dose' => 'required|string|max:100',
@@ -55,7 +50,7 @@ class UserMedicineController extends Controller
             'notes' => 'nullable|string|max:500',
         ]);
 
-        // Check if medicine with same name already exists for this user
+        // Cek apakah obat dengan nama yang sama sudah ada
         $existingMedicine = Medicine::where('user_id', $userId)
             ->whereRaw('LOWER(name) = ?', [strtolower($validated['name'])])
             ->first();
@@ -67,7 +62,7 @@ class UserMedicineController extends Controller
                 ->withErrors(['name' => 'Obat sudah ada. Gunakan nama yang berbeda.']);
         }
 
-        // Add user_id dan source_type untuk medicine PATIENT
+        // Tambah user_id dan tipe sumber
         $validated['user_id'] = $userId;
         $validated['source_type'] = 'PATIENT';
 
@@ -78,9 +73,7 @@ class UserMedicineController extends Controller
             ->with('success', 'Obat berhasil ditambahkan: ' . $medicine->name);
     }
 
-    /**
-     * Get user medicines
-     */
+    // Tampilkan daftar obat pribadi user dengan pagination
     public function myMedicines()
     {
         $medicines = Medicine::where('user_id', auth()->id())->paginate(10);
@@ -88,18 +81,14 @@ class UserMedicineController extends Controller
         return view('app.medicines.my-medicines', compact('medicines'));
     }
 
-    /**
-     * Edit user medicine
-     */
+    // Tampilkan form edit obat
     public function edit(Medicine $medicine)
     {
         $this->authorize('update', $medicine);
         return view('app.medicines.edit', compact('medicine'));
     }
 
-    /**
-     * Update user medicine
-     */
+    // Perbarui data obat
     public function update(Request $request, Medicine $medicine)
     {
         $this->authorize('update', $medicine);
@@ -118,13 +107,12 @@ class UserMedicineController extends Controller
             ->with('success', 'Obat berhasil diperbarui: ' . $medicine->name);
     }
 
-    /**
-     * Delete user medicine
-     */
+    // Hapus obat dari database
     public function destroy(Medicine $medicine)
     {
         $this->authorize('delete', $medicine);
 
+        // Simpan nama obat sebelum dihapus
         $name = $medicine->name;
         $medicine->delete();
 

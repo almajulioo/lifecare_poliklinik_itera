@@ -1,5 +1,6 @@
 <?php
 
+// Kontrol untuk autentikasi admin
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -7,6 +8,7 @@ use Illuminate\Http\Request;
 
 class AdminAuthController extends Controller
 {
+    // Tampilkan form login admin
     public function showLogin()
     {
         return view('admin.auth.login');

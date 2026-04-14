@@ -1,5 +1,6 @@
 <?php
 
+// Kontrol untuk menampilkan riwayat dan statistik pengambilan obat
 namespace App\Http\Controllers;
 
 use App\Models\MedicationLog;
@@ -10,11 +11,10 @@ use Carbon\CarbonPeriod;
 
 class MedicationHistoryController extends Controller
 {
-    /**
-     * Get medication history with filters
-     */
+    // Tampilkan riwayat obat dengan filter (tanggal dan obat)
     public function index(Request $request)
     {
+        // Validasi input filter
         $validated = $request->validate([
             'from_date' => 'nullable|date',
             'to_date' => 'nullable|date',
@@ -22,11 +22,12 @@ class MedicationHistoryController extends Controller
         ]);
 
         $userId = auth()->id();
+        // Tentukan range tanggal: default 1 bulan ke belakang
         $fromDate = !empty($validated['from_date']) ? Carbon::parse($validated['from_date']) : now()->subMonth();
         $toDate = !empty($validated['to_date']) ? Carbon::parse($validated['to_date']) : now();
         $medicineId = $validated['medicine_id'] ?? null;
 
-        // Get medication logs with medicine details
+        // Ambil log obat dengan relasi dan filter
         $logs = MedicationLog::with(['medicationSchedule.medicine', 'user'])
             ->where('user_id', $userId)
             ->whereDate('created_at', '>=', $fromDate)

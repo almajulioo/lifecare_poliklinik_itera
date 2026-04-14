@@ -6,26 +6,29 @@ use Illuminate\Http\Request;
 use App\Models\MedicationSchedule;
 use Carbon\Carbon;
 
+
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+        // Ambil data user yang sedang login
         $user = $request->user();
 
-        // TODAY'S SCHEDULES with compliance tracking
+        // Ambil jadwal obat hari ini yang aktif dengan tracking kepatuhan
         $todaySchedules = \App\Models\MedicationSchedule::with(['medicine', 'logs' => function($q) {
+                // Hanya ambil log yang dibuat pada hari ini
                 $q->whereDate('created_at', today());
             }])
-            ->where('user_id', auth()->id())
-            ->where('is_active', true)
-            ->whereDate('start_date', '<=', today())
+            ->where('user_id', auth()->id())  // filter utk user yang login
+            ->where('is_active', true)        // cuma jadwal yang aktif
+            ->whereDate('start_date', '<=', today())  // Jadwal sudah dimulai
             ->where(function($q){
                 $q->whereNull('end_date')->orWhereDate('end_date', '>=', today());
             })
             ->orderBy('time')
             ->get();
 
-        // TOMORROW'S SCHEDULES (preview)
+        // Preview jadwal obat besok (max 3 jadwal)
         $tomorrow = today()->addDay();
         $tomorrowSchedules = \App\Models\MedicationSchedule::with(['medicine'])
             ->where('user_id', auth()->id())
@@ -38,17 +41,14 @@ class DashboardController extends Controller
             ->limit(3)
             ->get();
 
-        // COMPLIANCE CALCULATION FOR TODAY
+        // Hitung compliance: (jumlah diminum / total jadwal) * 100
         $totalToday = $todaySchedules->count();
         $takenToday = $todaySchedules->filter(function($schedule) {
             return $schedule->logs->first()?->status === 'taken';
         })->count();
+        $complianceToday = $totalToday > 0 ? round(($takenToday / $totalToday) * 100) : 0;
 
-        $complianceToday = $totalToday > 0 
-            ? round(($takenToday / $totalToday) * 100) 
-            : 0;
-
-        // No caching - always fresh data for better UX
+        // Kirim data ke view dashboard
         return view('app.dashboard', [
             'schedules' => $todaySchedules,
             'tomorrowSchedules' => $tomorrowSchedules,
@@ -58,17 +58,16 @@ class DashboardController extends Controller
         ]);
     }
 
-    /**
-     * Get upcoming medication schedules for 30 days
-     */
+    // Tampilkan jadwal obat 30 hari ke depan, dikelompokkan per tanggal
     public function upcomingSchedules(Request $request)
     {
         $userId = auth()->id();
 
-        // Get schedules for next 30 days
+        // Tentukan range tanggal: hari ini sampai 30 hari ke depan
         $startDate = now()->startOfDay();
         $endDate = now()->addDays(30)->endOfDay();
 
+        // Ambil jadwal aktif untuk user dalam range 30 hari
         $schedules = MedicationSchedule::with(['medicine', 'logs'])
             ->where('user_id', $userId)
             ->where('is_active', true)
@@ -78,21 +77,19 @@ class DashboardController extends Controller
             })
             ->get();
 
-        // Group schedules by date
+        // Inisialisasi array untuk menyimpan jadwal per tanggal (30 hari)
         $schedulesByDate = [];
-        
         for ($i = 0; $i < 30; $i++) {
             $date = now()->addDays($i)->toDateString();
             $schedulesByDate[$date] = collect();
         }
 
+        // Iterasi setiap jadwal dan tentukan tanggal berlakunya dalam 30 hari
         foreach ($schedules as $schedule) {
-            // Start date: use max of schedule start_date or today
-            // This handles schedules that started in the past
+            // Tentukan tanggal mulai: hari ini jika jadwal sudah mulai, atau start_date jadwal
             $startDate = Carbon::parse($schedule->start_date);
             $iterationStart = $startDate->lt(now()) ? now()->startOfDay() : $startDate->startOfDay();
-            
-            // End date: use min of schedule end_date or 30 days from now
+            // Tentukan tanggal akhir: end_date jadwal atau 30 hari, mana yang lebih awal
             $limit30Days = now()->addDays(30)->endOfDay();
             if ($schedule->end_date) {
                 $scheduleEnd = Carbon::parse($schedule->end_date);
@@ -101,25 +98,23 @@ class DashboardController extends Controller
                 $iterationEnd = $limit30Days;
             }
 
-            // Iterate through all days in the range
+            // Loop setiap hari dalam range jadwal, tambahkan ke array per tanggal
             $currentDate = $iterationStart->copy()->startOfDay();
             while ($currentDate->lte($iterationEnd)) {
                 $dateStr = $currentDate->toDateString();
-                
                 if (isset($schedulesByDate[$dateStr])) {
                     $schedulesByDate[$dateStr]->push($schedule);
                 }
-
                 $currentDate->addDay();
             }
         }
 
-        // Remove empty dates
+        // Hapus tanggal yang tidak ada jadwal
         $schedulesByDate = array_filter($schedulesByDate, function($schedules) {
             return $schedules->count() > 0;
         });
 
-        // Sort by date
+        // Urutkan berdasarkan tanggal
         ksort($schedulesByDate);
 
         return view('app.schedules.upcoming', [

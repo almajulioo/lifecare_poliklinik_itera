@@ -1,5 +1,6 @@
 <?php
 
+// Kontrol untuk perubahan password user
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -10,16 +11,16 @@ use Illuminate\Validation\Rules\Password;
 
 class PasswordController extends Controller
 {
-    /**
-     * Update the user's password.
-     */
+    // Perbarui password user
     public function update(Request $request): RedirectResponse
     {
+        // Validasi password lama dan password baru (harus sama)
         $validated = $request->validateWithBag('updatePassword', [
             'current_password' => ['required', 'current_password'],
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
+        // Simpan password baru yang sudah di-hash
         $request->user()->update([
             'password' => Hash::make($validated['password']),
         ]);

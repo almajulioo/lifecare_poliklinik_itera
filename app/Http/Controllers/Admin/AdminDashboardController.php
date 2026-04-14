@@ -11,9 +11,10 @@ use App\Models\ClinicPatient;
 
 class AdminDashboardController extends Controller
 {
+    // Tampilkan dashboard admin dengan statistik dan aktivitas terbaru
     public function index()
     {
-        // Get real statistics from database
+        // Ambil statistik dari database
         $stats = [
             'total_patients' => User::count(),
             'active_schedules' => MedicationSchedule::where('is_active', true)->count(),

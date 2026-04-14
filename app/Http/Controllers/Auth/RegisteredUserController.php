@@ -1,5 +1,6 @@
 <?php
 
+// Kontrol untuk mengelola registrasi user baru
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -14,21 +15,16 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
+    // Tampilkan form registrasi
     public function create(): View
     {
         return view('auth.register');
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
+    // Proses registrasi - buat user baru
     public function store(Request $request): RedirectResponse
     {
+        // Validasi input registrasi termasuk role (mahasiswa/pegawai)
         $request->validate([
             'role_user' => ['required', 'in:mahasiswa,pegawai'],
             'name' => ['required', 'string', 'max:255'],
@@ -38,6 +34,7 @@ class RegisteredUserController extends Controller
             'prodi' => [$request->role_user === 'mahasiswa' ? 'required' : 'nullable'],
         ]);
 
+        // Buat user baru dengan data yang tervalidasi
         $user = User::create([
             'role_user' => $request->role_user,
             'name' => $request->name,
@@ -47,8 +44,10 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Fire registered event untuk email verification
         event(new Registered($user));
 
+        // Login otomatis setelah registrasi
         Auth::login($user);
 
         return redirect(route('dashboard', absolute: false));

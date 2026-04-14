@@ -1,5 +1,6 @@
 <?php
 
+// Kontrol untuk mengelola sesi autentikasi (login/logout)
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -11,35 +12,34 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
+    // Tampilkan form login
     public function create(): View
     {
         return view('auth.login');
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
+    // Proses login - autentikasi user
     public function store(LoginRequest $request): RedirectResponse
     {
+        // Validasi dan autentikasi kredensial
         $request->authenticate();
 
+        // Regenerate session setelah login
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
+    // Logout - hapus sesi autentikasi
     public function destroy(Request $request): RedirectResponse
     {
+        // Logout user
         Auth::guard('web')->logout();
 
+        // Invalidate session
         $request->session()->invalidate();
 
+        // Regenerate CSRF token
         $request->session()->regenerateToken();
 
         return redirect('/login');

@@ -7,8 +7,17 @@
     <!-- Header -->
     <div class="sticky top-0 z-40 bg-white border-b border-slate-200">
         <div class="max-w-2xl mx-auto px-4 py-4">
-            <h1 class="text-2xl font-bold text-slate-900">📅 Jadwal Minum Obat</h1>
-            <p class="text-sm text-slate-600 mt-1">Jadwal minum obat Anda mendatang</p>
+            <div class="flex items-center gap-3 mb-2">
+                <a href="{{ route('app.dashboard') }}" class="p-2 hover:bg-slate-100 rounded-lg transition">
+                    <svg class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">📅 Jadwal Minum Obat</h1>
+                </div>
+            </div>
+            <p class="text-sm text-slate-600 mt-1 ml-11">Jadwal minum obat Anda mendatang</p>
         </div>
     </div>
 

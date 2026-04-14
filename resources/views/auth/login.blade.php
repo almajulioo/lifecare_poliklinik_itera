@@ -1,9 +1,18 @@
 <x-guest-layout>
+    <!-- Back Button -->
+    <div class="px-6 pt-4 pb-2">
+        <a href="/" class="inline-flex items-center p-2 hover:bg-gray-100 rounded-lg transition">
+            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+            </svg>
+        </a>
+    </div>
+
     <!-- Session Status -->
     <x-auth-session-status class="mb-6" :status="session('status')" />
 
     <!-- Title Section -->
-    <div class="text-center mt-4 mb-4 px-6">
+    <div class="text-center mt-2 mb-4 px-6">
         <h1 class="text-3xl font-bold text-gray-900 mb-3">Welcome Back!</h1>
         <p class="text-sm text-gray-600 mb-3">Log in to manage your clinic appointments and healthcare</p>
         <p class="text-sm text-gray-600">Don't have an account? <a href="{{ route('register') }}" style="color: var(--primary-color);" class="font-semibold hover:underline">Sign up</a></p>

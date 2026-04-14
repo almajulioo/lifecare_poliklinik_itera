@@ -24,13 +24,6 @@
         </div>
     @endif
 
-    <!-- Button Buat Jadwal -->
-    <div class="flex gap-2">
-        <a href="{{ route('app.schedules.create') }}" class="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition text-center text-sm">
-            + Jadwal Baru
-        </a>
-    </div>
-
     <!-- Statistics -->
     <div class="grid grid-cols-3 gap-3">
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -101,8 +94,16 @@
                         </form>
                     </div>
                 </div>
+        
+        
             @endforeach
         </div>
+
+        <!-- Button Buat Jadwal -->
+        <a href="{{ route('app.schedules.create') }}" class="block px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition text-center text-sm">
+            + Jadwal Baru
+        </a>
+
     @else
         <div class="bg-white rounded-lg border border-gray-200 p-8 text-center">
             <p class="text-gray-500 mb-3">Belum ada jadwal obat</p>
@@ -110,6 +111,9 @@
                 Buat jadwal pertama →
             </a>
         </div>
+    
+
+
     @endif
 </div>
 @endsection

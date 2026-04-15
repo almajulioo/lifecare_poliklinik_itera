@@ -13,11 +13,15 @@ class DashboardController extends Controller
     {
         // Ambil data user yang sedang login
         $user = $request->user();
+        $now = now();
 
         // Ambil jadwal obat hari ini yang aktif dengan tracking kepatuhan
         $todaySchedules = \App\Models\MedicationSchedule::with(['medicine', 'logs' => function($q) {
-                // Hanya ambil log yang dibuat pada hari ini
-                $q->whereDate('created_at', today());
+                // Ambil log yang di-update atau dibuat hari ini (untuk tracking hari ini)
+                $q->where(function($query) {
+                    $query->whereDate('updated_at', today())
+                          ->orWhereDate('taken_at', today());
+                });
             }])
             ->where('user_id', auth()->id())  // filter utk user yang login
             ->where('is_active', true)        // cuma jadwal yang aktif
@@ -27,6 +31,21 @@ class DashboardController extends Controller
             })
             ->orderBy('time')
             ->get();
+
+        // Ambil obat yang sudah melewati waktu minumnya (untuk reminder di dashboard)
+        $dueMedications = $todaySchedules->filter(function($schedule) use ($now) {
+            [$hour, $minute] = explode(':', $schedule->time);
+            $scheduledTime = Carbon::createFromTime($hour, $minute);
+            
+            // Hanya tampilkan jika waktu sekarang > waktu jadwal (sudah melewati)
+            return $now->gt($scheduledTime);
+        })
+        ->filter(function($schedule) {
+            // Filter hanya obat yang belum diminum
+            $log = $schedule->logs->first();
+            return !$log || $log->status !== 'taken';
+        })
+        ->values();
 
         // Preview jadwal obat besok (max 3 jadwal)
         $tomorrow = today()->addDay();
@@ -51,6 +70,7 @@ class DashboardController extends Controller
         // Kirim data ke view dashboard
         return view('app.dashboard', [
             'schedules' => $todaySchedules,
+            'dueMedications' => $dueMedications,
             'tomorrowSchedules' => $tomorrowSchedules,
             'complianceToday' => $complianceToday,
             'takenToday' => $takenToday,

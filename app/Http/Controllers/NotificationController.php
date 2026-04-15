@@ -93,7 +93,7 @@ class NotificationController extends Controller
             'success' => true,
             'today' => $todayNotifications,
             'tomorrow' => $tomorrowNotifications,
-            'user_timezone' => $user->timezone ?? 'UTC',
+            'user_timezone' => $user->timezone ?? 'Asia/Jakarta',
             'current_time' => now()->toIso8601String(),
         ]);
     }
@@ -167,7 +167,7 @@ class NotificationController extends Controller
             'sound_enabled' => true,
             'advance_minutes' => 0,
             'vibration_enabled' => true,
-            'timezone' => $user->timezone ?? 'UTC',
+            'timezone' => $user->timezone ?? 'Asia/Jakarta',
         ];
 
         return response()->json([
@@ -392,6 +392,154 @@ class NotificationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Notification dismissed',
+        ]);
+    }
+
+    // Ambil obat yang harus diminum sekarang (untuk dashboard reminder)
+    public function getDueMedications(Request $request)
+    {
+        $user = $request->user();
+        $now = now();
+
+        // Ambil jadwal obat hari ini
+        $todaySchedules = MedicationSchedule::with(['medicine', 'logs' => function($q) {
+                $q->whereDate('updated_at', today())
+                  ->orWhereDate('taken_at', today());
+            }])
+            ->where('user_id', $user->id)
+            ->where('is_active', true)
+            ->whereDate('start_date', '<=', today())
+            ->where(function($q) {
+                $q->whereNull('end_date')->orWhereDate('end_date', '>=', today());
+            })
+            ->get();
+
+        // Filter obat yang waktu minumnya sudah melewati waktu sekarang
+        $dueMedications = $todaySchedules->filter(function($schedule) use ($now) {
+            [$hour, $minute] = explode(':', $schedule->time);
+            $scheduledTime = Carbon::createFromTime($hour, $minute);
+            
+            // Hanya tampilkan jika waktu sekarang > waktu jadwal (sudah melewati)
+            return $now->gt($scheduledTime);
+        })
+        ->filter(function($schedule) {
+            // Filter hanya obat yang belum diminum
+            $log = $schedule->logs->first();
+            return !$log || $log->status !== 'taken';
+        })
+        ->map(function($schedule) {
+            [$hour, $minute] = explode(':', $schedule->time);
+            $scheduledTime = Carbon::createFromTime($hour, $minute);
+            
+            $log = $schedule->logs->first();
+            
+            return [
+                'medication_schedule_id' => $schedule->id,
+                'medicine_name' => $schedule->medicine->name,
+                'medicine_dose' => $schedule->medicine->dose . ' ' . ($schedule->medicine->unit ?? ''),
+                'time' => $schedule->time,
+                'scheduled_datetime' => $scheduledTime->toIso8601String(),
+                'status' => $log?->status ?? 'pending',
+                'reminder_type' => 'dashboard',
+            ];
+        })
+        ->values();
+
+        return response()->json([
+            'success' => true,
+            'due_medications' => $dueMedications,
+            'count' => $dueMedications->count(),
+            'current_time' => $now->toIso8601String(),
+        ]);
+    }
+
+    // Tangani tombol "Nanti" - snooze reminder 5 menit
+    public function snoozeReminderDashboard(Request $request)
+    {
+        $validated = $request->validate([
+            'medication_schedule_id' => 'required|exists:medication_schedules,id',
+            'snooze_minutes' => 'required|integer|in:5,10,15',
+        ]);
+
+        $user = $request->user();
+        $snoozeUntil = now()->addMinutes($validated['snooze_minutes']);
+
+        // Simpan ke dalam NotificationLog
+        $notifLog = NotificationLog::where('user_id', $user->id)
+            ->where('medication_schedule_id', $validated['medication_schedule_id'])
+            ->whereDate('scheduled_time', today())
+            ->first();
+
+        if ($notifLog) {
+            $notifLog->update([
+                'status' => 'snoozed',
+                'snooze_minutes' => $validated['snooze_minutes'],
+                'snooze_until' => $snoozeUntil,
+            ]);
+        } else {
+            // Buat record baru jika tidak ada
+            NotificationLog::create([
+                'user_id' => $user->id,
+                'medication_schedule_id' => $validated['medication_schedule_id'],
+                'scheduled_time' => now(),
+                'status' => 'snoozed',
+                'snooze_minutes' => $validated['snooze_minutes'],
+                'snooze_until' => $snoozeUntil,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reminder snoozed for ' . $validated['snooze_minutes'] . ' minutes',
+            'snooze_until' => $snoozeUntil->toIso8601String(),
+        ]);
+    }
+
+    // Ambil reminder pending untuk dashboard (termasuk yang di-snooze)
+    public function getPendingReminders(Request $request)
+    {
+        $user = $request->user();
+        $now = now();
+
+        // Ambil semua reminder pending yang waktu snoozenya sudah berlalu
+        $pendingReminders = NotificationLog::where('user_id', $user->id)
+            ->whereDate('scheduled_time', today())
+            ->where(function($q) use ($now) {
+                $q->where('status', 'snoozed')
+                  ->where(function($subQ) use ($now) {
+                      $subQ->whereNull('snooze_until')
+                           ->orWhere('snooze_until', '<=', $now);
+                  });
+            })
+            ->orWhere(function($q) use ($user, $now) {
+                $q->where('user_id', $user->id)
+                  ->whereDate('scheduled_time', today())
+                  ->where('status', 'pending');
+            })
+            ->with(['medicationSchedule.medicine'])
+            ->orderBy('scheduled_time')
+            ->get();
+
+        $reminders = $pendingReminders->map(function($notif) {
+            $schedule = $notif->medicationSchedule;
+            [$hour, $minute] = explode(':', $schedule->time);
+            $scheduledTime = Carbon::createFromTime($hour, $minute);
+
+            return [
+                'medication_schedule_id' => $schedule->id,
+                'medicine_name' => $schedule->medicine->name,
+                'medicine_dose' => $schedule->medicine->dose . ' ' . ($schedule->medicine->unit ?? ''),
+                'time' => $schedule->time,
+                'scheduled_datetime' => $scheduledTime->toIso8601String(),
+                'status' => $notif->status,
+                'snooze_minutes' => $notif->snooze_minutes,
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'pending_reminders' => $reminders,
+            'count' => $reminders->count(),
         ]);
     }
 }

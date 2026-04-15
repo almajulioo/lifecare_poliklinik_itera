@@ -4,26 +4,24 @@
 
 <div class="pb-28 bg-white min-h-screen">
     {{-- HEADER SECTION --}}
-    <div class="bg-white px-4 pt-4 pb-3 border-b border-gray-100">
+    <div class="bg-white px-4 pt-4 pb-4 border-b border-gray-100 sticky top-0 z-10">
         {{-- Greeting + Avatar --}}
-        <div class="flex justify-between items-start mb-4">
+        <div class="flex justify-between items-start mb-3">
             <div>
-                <div class="text-sm text-gray-500">
+                <div class="text-xs text-gray-500 font-medium mb-1">
                     @php
-                        $userTimezone = auth()->user()->timezone ?? 'Asia/Jakarta';
-                        $userTime = \Carbon\Carbon::now($userTimezone);
-                        $userTime->setLocale('id');
+                        $userTime = \Carbon\Carbon::now();
                         $hour = (int)$userTime->format('H');
                         $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 17 ? 'Selamat Siang' : 'Selamat Malam');
                     @endphp
-                    {{ $greeting }},
+                    {{ $greeting }}
                 </div>
                 <div class="text-xl font-bold text-gray-900">{{ auth()->user()->name }}</div>
-                <div class="text-xs text-gray-400 mt-1">
+                <div class="text-xs text-gray-400 mt-0.5">
                     {{ $userTime->translatedFormat('l, j F Y') }}
                 </div>
             </div>
-            <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-base shadow-md">
                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
             </div>
         </div>
@@ -31,95 +29,133 @@
 
     <div class="px-4 pt-4 space-y-4">
 
-
-    {{-- OBAT HARI INI SECTION --}}
-    <div class="bg-white rounded-2xl p-4">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-bold text-gray-900">Obat Hari Ini</h2>
-            <div class="text-right">
-                <div class="text-sm font-semibold text-gray-700">{{ $takenToday }} dari {{ $totalToday }}</div>
-                <div class="text-xs text-gray-500">diminum</div>
-            </div>
-        </div>
-
-        @forelse ($schedules as $schedule)
+    {{-- REMINDER LIST SECTION --}}
+    @if($dueMedications->count() > 0)
+    <div class="space-y-2">
+        @foreach($dueMedications as $medication)
             @php
-                $log = $schedule->logs->first();
-                $status = $log?->status ?? 'pending';
-                $isTaken = $status === 'taken';
-                
-                // Handle old JSON format and new H:i format
-                $timeStr = $schedule->time;
+                $timeStr = $medication->time;
                 if (str_starts_with($timeStr, '[')) {
-                    // Old format: ["16:00","04:00"] - take first time
                     $times = json_decode($timeStr, true);
                     $timeStr = is_array($times) ? $times[0] : '00:00';
                 }
                 $formattedTime = \Carbon\Carbon::createFromFormat('H:i', $timeStr)->format('H:i');
             @endphp
-
-            <div class="flex items-center justify-between p-3 mb-3 rounded-lg border {{ $isTaken ? 'border-green-200 bg-green-50' : 'border-blue-200 bg-blue-50' }}">
-                {{-- Left Section: Name & Dose --}}
-                <div class="flex-1">
-                    <div class="font-semibold text-sm text-gray-900">
-                        {{ $schedule->medicine->name }}
-                    </div>
-                    <div class="text-xs text-gray-600 mt-1">
-                        {{ $schedule->medicine->dose }} {{ $schedule->medicine->unit ?? '' }} · 
-                        {{ $formattedTime }}
+            
+            <div class="bg-red-50 border border-red-300 rounded-lg p-3">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <div class="font-semibold text-red-900 text-sm">
+                            💊 {{ $medication->medicine->name }}
+                        </div>
+                        <div class="text-red-700 text-xs">
+                            {{ $medication->medicine->dose }} {{ $medication->medicine->unit ?? '' }} · Jam {{ $formattedTime }}
+                        </div>
                     </div>
                 </div>
-
-                {{-- Right Section: Status Badge & Action --}}
-                <div class="ml-3 text-right">
-                    @if($isTaken)
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-200 text-green-800">
-                            ✓ Diminum
-                        </span>
-                    @else
-                        <form method="POST" action="{{ route('app.schedules.take', $schedule->id) }}" class="inline">
-                            @csrf
-                            <button type="submit" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-200 text-blue-800 hover:bg-blue-300 transition">
-                                ◌ Akan Diminum
-                            </button>
-                        </form>
-                    @endif
+                <div class="flex gap-2">
+                    <form method="POST" action="{{ route('app.schedules.take', $medication->id) }}" class="flex-1">
+                        @csrf
+                        <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white text-xs font-bold py-2 px-3 rounded transition">
+                            ✓ Sudah Minum
+                        </button>
+                    </form>
+                    <button class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2 px-3 rounded transition" onclick="snoozeReminder(this, {{ $medication->id }})">
+                        Nanti 5 Menit
+                    </button>
                 </div>
             </div>
-        @empty
-            <div class="text-center py-6 text-gray-500">
-                <div class="text-2xl mb-2">✨</div>
-                <p class="text-sm">Tidak ada jadwal obat untuk hari ini</p>
-            </div>
-        @endforelse
+        @endforeach
+    </div>
+    @endif
 
-        {{-- View All Link --}}
-        @if($schedules->count() > 0)
-        <a href="{{ route('app.medications.index') }}" class="text-blue-600 text-sm font-medium mt-3 block text-center hover:text-blue-700">
-            Lihat Semua Obat →
-        </a>
-        @endif
+    {{-- OBAT HARI INI SECTION --}}
+    <div>
+        <h2 class="text-base font-bold text-gray-900 mb-3">Obat Hari Ini</h2>
+        
+        <div class="space-y-2">
+            {{-- Stats Counter --}}
+            <div class="text-right mb-3">
+                <div class="text-lg font-bold text-gray-900">{{ $takenToday }} dari {{ $totalToday }}</div>
+                <div class="text-xs text-gray-500">diminum</div>
+            </div>
+
+            @forelse ($schedules as $schedule)
+                @php
+                    $log = $schedule->logs->first();
+                    $status = $log?->status ?? 'pending';
+                    $isTaken = $status === 'taken';
+                    
+                    // Handle old JSON format and new H:i format
+                    $timeStr = $schedule->time;
+                    if (str_starts_with($timeStr, '[')) {
+                        // Old format: ["16:00","04:00"] - take first time
+                        $times = json_decode($timeStr, true);
+                        $timeStr = is_array($times) ? $times[0] : '00:00';
+                    }
+                    $formattedTime = \Carbon\Carbon::createFromFormat('H:i', $timeStr)->format('H:i');
+                @endphp
+
+                <div class="flex items-center justify-between p-3 rounded-lg {{ $isTaken ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200' }}">
+                    {{-- Left Section: Name & Dose --}}
+                    <div class="flex-1">
+                        <div class="font-semibold text-sm {{ $isTaken ? 'text-green-700' : 'text-gray-700' }}">
+                            {{ $schedule->medicine->name }}
+                        </div>
+                        <div class="text-xs text-gray-600 mt-1">
+                            {{ $schedule->medicine->dose }} {{ $schedule->medicine->unit ?? '' }} · {{ $formattedTime }}
+                        </div>
+                    </div>
+
+                    {{-- Right Section: Status Badge --}}
+                    <div class="ml-3 flex-shrink-0">
+                        @if($isTaken)
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                                ✓ Diminum
+                            </span>
+                        @else
+                            <form method="POST" action="{{ route('app.schedules.take', $schedule->id) }}" class="inline">
+                                @csrf
+                                <button type="submit" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200 transition">
+                                    ◉ Minum
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="text-3xl mb-2">✨</div>
+                    <p class="text-sm text-gray-500">Tidak ada jadwal obat untuk hari ini</p>
+                </div>
+            @endforelse
+
+            {{-- View All Link --}}
+            @if($schedules->count() > 0)
+            <a href="{{ route('app.medications.index') }}" class="text-blue-600 text-sm font-semibold mt-3 block text-center hover:text-blue-700">
+                Lihat Semua Obat →
+            </a>
+            @endif
+        </div>
     </div>
 
     {{-- SEMUA FITUR SECTION --}}
     <div>
-        <h2 class="text-lg font-bold text-gray-900 mb-3 px-1">Semua Fitur</h2>
+        <h2 class="text-base font-bold text-gray-900 mb-3">Semua Fitur</h2>
         
-        <div class="grid grid-cols-2 gap-3">
-            {{-- Tambah Jadwal Pengingat --}}
-            <a href="{{ route('app.schedules.create') }}" class="bg-white rounded-2xl p-6 flex flex-col items-center justify-center border border-gray-100 hover:border-green-300 hover:shadow-md transition">
-                <svg class="w-8 h-8 mb-2 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2a1 1 0 011 1v8h8a1 1 0 110 2h-8v8a1 1 0 11-2 0v-8H3a1 1 0 110-2h8V3a1 1 0 011-1z"></path>
-                </svg>
-                <span class="text-sm font-medium text-gray-700 text-center">Tambah Jadwal<br>Pengingat</span>
+        <div class="grid grid-cols-2 gap-4">
+            {{-- Tambah Obat Pribadi --}}
+            <a href="{{ route('app.schedules.create') }}" class="bg-white rounded-lg p-5 flex flex-col items-center justify-center border border-gray-200 hover:border-green-300 hover:bg-green-50 transition duration-200">
+                <div class="text-4xl mb-3">➕</div>
+                <span class="text-sm font-semibold text-gray-900 text-center">Tambah Obat</span>
+                <span class="text-xs text-gray-500 text-center mt-1">Pribadi</span>
             </a>
 
-            {{-- Buat Jadwal Minum Obat --}}
-            <a href="{{ route('app.schedules.upcoming') }}" class="bg-white rounded-2xl p-6 flex flex-col items-center justify-center border border-gray-100 hover:border-purple-300 hover:shadow-md transition">
-                <svg class="w-8 h-8 mb-2 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M5 3a2 2 0 012-2h10a2 2 0 012 2v2h4a2 2 0 012 2v13a2 2 0 01-2 2H2a2 2 0 01-2-2V7a2 2 0 012-2h4V3zM7 5h10V3H7v2z"></path>
-                </svg>
-                <span class="text-sm font-medium text-gray-700 text-center">Jadwal<br>Minum Obat</span>
+            {{-- Jadwal Minum Obat --}}
+            <a href="{{ route('app.schedules.upcoming') }}" class="bg-white rounded-lg p-5 flex flex-col items-center justify-center border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition duration-200">
+                <div class="text-4xl mb-3">📋</div>
+                <span class="text-sm font-semibold text-gray-900 text-center">Jadwal</span>
+                <span class="text-xs text-gray-500 text-center mt-1">Minum Obat</span>
             </a>
         </div>
     </div>
@@ -128,5 +164,37 @@
 
 {{-- Mobile Bottom Navigation --}}
 <x-mobile-bottom-nav active="dashboard" />
+
+<script>
+function snoozeReminder(btn, medicationScheduleId) {
+    // Disable button to prevent multiple clicks
+    btn.disabled = true;
+    btn.textContent = 'Memproses...';
+    
+    fetch('/api/snooze-reminder-dashboard', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            medication_schedule_id: medicationScheduleId,
+            snooze_minutes: 5
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Pengingat ditunda 5 menit, kami akan ingatkan lagi.');
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        btn.disabled = false;
+        btn.textContent = 'Nanti 5 Menit';
+    });
+}
+</script>
 
 @endsection

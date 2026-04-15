@@ -197,6 +197,16 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/second-reminder-sent', [NotificationController::class, 'markSecondReminderSent'])
             ->name('second-reminder-sent');
         
+        // DASHBOARD REMINDER ROUTES
+        Route::get('/due-medications', [NotificationController::class, 'getDueMedications'])
+            ->name('due-medications');
+        
+        Route::post('/snooze-reminder-dashboard', [NotificationController::class, 'snoozeReminderDashboard'])
+            ->name('snooze-reminder-dashboard');
+        
+        Route::get('/pending-reminders', [NotificationController::class, 'getPendingReminders'])
+            ->name('pending-reminders');
+        
         // MEDICATION ACTION ROUTES (for notification modal)
         Route::get('/medication-schedule/{schedule}', [MedicationLogController::class, 'getScheduleDetails'])
             ->name('medication-schedule');

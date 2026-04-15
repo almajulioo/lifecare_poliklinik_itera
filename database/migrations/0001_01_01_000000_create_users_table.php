@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->json('notification_preferences')->nullable();
-            $table->string('timezone')->default('UTC');
+            $table->string('timezone')->default('Asia/Jakarta');
             $table->json('medical_conditions')->nullable();
             $table->text('notes')->nullable();
             $table->rememberToken();

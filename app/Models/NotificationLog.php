@@ -18,6 +18,7 @@ class NotificationLog extends Model
         'sent_at',
         'status',
         'snooze_minutes',
+        'snooze_until',
         'notification_type',
         'device_info',
         'reminder_number',
@@ -28,6 +29,7 @@ class NotificationLog extends Model
     protected $casts = [
         'scheduled_time' => 'datetime',
         'sent_at' => 'datetime',
+        'snooze_until' => 'datetime',
         'second_reminder_at' => 'datetime',
         'second_reminder_sent_at' => 'datetime',
     ];

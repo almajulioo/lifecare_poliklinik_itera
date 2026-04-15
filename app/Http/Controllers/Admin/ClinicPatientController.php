@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ClinicPatient;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
@@ -102,9 +103,9 @@ class ClinicPatientController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'nullable|exists:users,id|unique:clinic_patients,user_id',
+            'user_id' => ['nullable', 'exists:users,id', Rule::unique('clinic_patients', 'user_id')->whereNotNull('user_id')],
             'name' => 'required|string|max:255',
-            'identity_number' => 'nullable|string|max:255|unique:clinic_patients,identity_number',
+            'identity_number' => ['nullable', 'string', 'max:255', Rule::unique('clinic_patients', 'identity_number')->whereNotNull('identity_number')],
             'category' => 'required|in:mahasiswa,pegawai,umum',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
@@ -186,9 +187,9 @@ class ClinicPatientController extends Controller
     public function update(Request $request, ClinicPatient $clinicPatient)
     {
         $validated = $request->validate([
-            'user_id' => 'nullable|exists:users,id|unique:clinic_patients,user_id,' . $clinicPatient->id,
+            'user_id' => ['nullable', 'exists:users,id', Rule::unique('clinic_patients', 'user_id')->ignore($clinicPatient->id)->whereNotNull('user_id')],
             'name' => 'required|string|max:255',
-            'identity_number' => 'nullable|string|max:255|unique:clinic_patients,identity_number,' . $clinicPatient->id,
+            'identity_number' => ['nullable', 'string', 'max:255', Rule::unique('clinic_patients', 'identity_number')->ignore($clinicPatient->id)->whereNotNull('identity_number')],
             'category' => 'required|in:mahasiswa,pegawai,umum',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',

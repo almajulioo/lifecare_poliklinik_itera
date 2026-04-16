@@ -134,7 +134,7 @@
                                 <div class="flex items-start justify-between p-3 border border-gray-200 rounded-lg">
                                     <div class="flex-1">
                                         <p class="text-sm font-medium text-gray-900">{{ $schedule->medicine?->name ?? 'Obat Tidak Ditemukan' }}</p>
-                                        <p class="text-xs text-gray-600 mt-1">{{ $schedule->dosage ?? '-' }} | {{ $schedule->frequency ?? '-' }}</p>
+                                        <p class="text-xs text-gray-600 mt-1">{{ $schedule->medicine?->dose ?? '-' }} | {{ $schedule->frequency ?? '-' }}</p>
                                     </div>
                                     @if($schedule->is_active)
                                         <x-admin.badge color="green">Aktif</x-admin.badge>
@@ -165,8 +165,10 @@
                                         <p class="text-sm font-medium text-gray-900">{{ $log->medicationSchedule?->medicine?->name ?? 'Obat Tidak Ditemukan' }}</p>
                                         <p class="text-xs text-gray-600 mt-1">{{ $log->created_at->format('d M Y H:i') }}</p>
                                     </div>
-                                    @if($log->is_taken)
+                                    @if($log->status === 'taken')
                                         <span class="text-green-600 font-bold text-lg">✓</span>
+                                    @elseif($log->status === 'missed')
+                                        <span class="text-red-600 font-bold text-lg">✕</span>
                                     @else
                                         <span class="text-gray-400 font-bold text-lg">○</span>
                                     @endif

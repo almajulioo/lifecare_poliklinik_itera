@@ -38,12 +38,14 @@ class RekamMedisController extends Controller
     }
 
     /**
-     * Show the form for creating medical records (not used currently).
+     * Display medical records for a specific user.
      */
-    public function create()
+    public function show(User $user)
     {
-        // This might be used for creating medical records
-        return view('admin.rekam-medis.create');
+        $user->load(['medicationSchedules.medicine', 'medicationLogs', 'clinicPatient']);
+        return view('admin.rekam-medis.show', [
+            'user' => $user,
+        ]);
     }
 
     /**

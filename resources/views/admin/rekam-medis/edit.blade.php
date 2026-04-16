@@ -139,7 +139,7 @@
                     <div class="flex items-start justify-between p-3 border border-gray-200 rounded-lg">
                         <div class="flex-1">
                             <p class="text-sm font-medium text-gray-900">{{ $schedule->medicine->name ?? 'Obat Tidak Ditemukan' }}</p>
-                            <p class="text-xs text-gray-600 mt-1">{{ $schedule->dosage ?? '-' }}</p>
+                            <p class="text-xs text-gray-600 mt-1">{{ $schedule->medicine->dose ?? '-' }}</p>
                             <p class="text-xs text-gray-600 mt-1">{{ $schedule->frequency ?? '-' }}</p>
                         </div>
                         @if($schedule->is_active)

@@ -144,11 +144,11 @@
         <h2 class="text-base font-bold text-gray-900 mb-3">Semua Fitur</h2>
         
         <div class="grid grid-cols-2 gap-4">
-            {{-- Tambah Obat Pribadi --}}
+            {{-- Tambah Jadwal Pengingat --}}
             <a href="{{ route('app.schedules.create') }}" class="bg-white rounded-lg p-5 flex flex-col items-center justify-center border border-gray-200 hover:border-green-300 hover:bg-green-50 transition duration-200">
                 <div class="text-4xl mb-3">➕</div>
-                <span class="text-sm font-semibold text-gray-900 text-center">Tambah Obat</span>
-                <span class="text-xs text-gray-500 text-center mt-1">Pribadi</span>
+                <span class="text-sm font-semibold text-gray-900 text-center">Tambah Jadwal</span>
+                <span class="text-xs text-gray-500 text-center mt-1">Pengingat</span>
             </a>
 
             {{-- Jadwal Minum Obat --}}

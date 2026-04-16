@@ -32,8 +32,11 @@ Route::middleware('auth:admin')->group(function () {
     // Obat Management
     Route::resource('obat', ObatController::class, ['as' => 'admin']);
     
-    // Rekam Medis
-    Route::resource('rekam-medis', RekamMedisController::class, ['as' => 'admin']);
+    // Rekam Medis - explicit routes to avoid singularization
+    Route::get('/rekam-medis', [RekamMedisController::class, 'index'])->name('admin.rekam-medis.index');
+    Route::get('/rekam-medis/{user}', [RekamMedisController::class, 'show'])->name('admin.rekam-medis.show');
+    Route::get('/rekam-medis/{user}/edit', [RekamMedisController::class, 'edit'])->name('admin.rekam-medis.edit');
+    Route::put('/rekam-medis/{user}', [RekamMedisController::class, 'update'])->name('admin.rekam-medis.update');
     
     // Medication Schedules
     Route::get('/schedules', [AdminMedicationScheduleController::class, 'index'])->name('admin.schedules.index');

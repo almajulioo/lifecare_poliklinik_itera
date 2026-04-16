@@ -334,8 +334,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Obat Management
         Route::resource('obat', ObatController::class);
 
-        // Rekam Medis
-        Route::resource('rekam-medis', RekamMedisController::class);
+        // Rekam Medis - explicit routes to avoid singularization
+        Route::get('/rekam-medis', [RekamMedisController::class, 'index'])->name('rekam-medis.index');
+        Route::get('/rekam-medis/{user}', [RekamMedisController::class, 'show'])->name('rekam-medis.show');
+        Route::get('/rekam-medis/{user}/edit', [RekamMedisController::class, 'edit'])->name('rekam-medis.edit');
+        Route::put('/rekam-medis/{user}', [RekamMedisController::class, 'update'])->name('rekam-medis.update');
 
         // Clinic Patient Management (Manajemen Pasien Poliklinik)
         Route::prefix('clinic-patients')->name('clinic-patients.')->group(function () {

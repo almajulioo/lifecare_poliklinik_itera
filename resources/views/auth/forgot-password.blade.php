@@ -1,4 +1,4 @@
-<x-guest-layout>
+<x-patient-guest-layout>
     <div class="mb-4 px-5 py-2 mt-4 text-sm text-gray-600">
         {{ __('Lupa password? Tidak Masalah. Beritahu kami alamat email Anda dan kami akan mengirimkan tautan pengaturan ulang password yang memungkinkan Anda memilih password baru.') }}
     </div>
@@ -22,4 +22,4 @@
             </x-primary-button>
         </div>
     </form>
-</x-guest-layout>
+</x-patient-guest-layout>

@@ -38,7 +38,7 @@
         </style>
     </head>
     <body class="font-sans text-gray-900 antialiased bg-gradient-to-br from-blue-50 to-teal-50">
-        <!-- Background gradient without image -->
+        <!-- Background gradient without image (Admin Login) -->
         <div class="fixed inset-0 -z-10" style="
             background: linear-gradient(135deg, #f0f9ff 0%, #f0fdfa 100%);
         "></div>
@@ -47,20 +47,22 @@
             <!-- Mobile Container -->
             <div class="w-full max-w-md">
                 <!-- Header with Logo -->
-                <div class="pb-7 text-center">
-                    <div class="flex flex-col items-center gap-2.5">
-                        <!-- ITERA Logo -->
-                        <img src="{{ asset('images/logo-itera.png') }}" alt="ITERA Logo" class="h-16 w-auto">
-                        <!-- Poliklinik Text -->
-                        <div>
-                            <h1 class="text-2xl font-bold text-gray-800">POLIKLINIK ITERA</h1>
-                            <p class="text-xs text-gray-600 mt-0.5 pb-5">Institut Teknologi Sumatera</p>
+                <div class="pb-8 text-center">
+                    <a href="/" class="inline-block">
+                        <div class="flex flex-col items-center gap-4">
+                            <!-- ITERA Logo -->
+                            <img src="{{ asset('images/logo-itera.png') }}" alt="ITERA Logo" class="h-24 w-auto">
+                            <!-- Poliklinik Text -->
+                            <div>
+                                <h1 class="text-4xl font-bold text-gray-800">POLIKLINIK ITERA</h1>
+                                <p class="text-base text-gray-600 mt-2">Institut Teknologi Sumatera</p>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
 
-                <!-- Content with transparent background -->
-                <div class="bg-white bg-opacity-40 rounded-xl shadow-lg overflow-hidden border border-white border-opacity-50 backdrop-blur-sm">
+                <!-- Content with semi-transparent white background -->
+                <div class="bg-white bg-opacity-95 rounded-xl shadow-2xl overflow-hidden">
                     {{ $slot }}
                 </div>
             </div>

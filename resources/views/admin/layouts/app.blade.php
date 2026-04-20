@@ -105,6 +105,22 @@
                 <!-- Divider -->
                 <div class="border-t border-gray-200 mx-3 my-4"></div>
 
+                <!-- Settings Section -->
+                <nav class="px-3 py-6 space-y-2">
+                    <!-- Manajemen Admin -->
+                    <a href="{{ route('admin.management.index') }}" 
+                       class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors
+                              {{ request()->routeIs('admin.management.*') ? 'bg-purple-50 text-purple-600 font-semibold' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                        </svg>
+                        <span>Manajemen Admin</span>
+                    </a>
+                </nav>
+
+                <!-- Divider -->
+                <div class="border-t border-gray-200 mx-3 my-4"></div>
+
                 <!-- Logout -->
                 <div class="px-3 py-4">
                     <form method="POST" action="{{ route('admin.logout') }}">

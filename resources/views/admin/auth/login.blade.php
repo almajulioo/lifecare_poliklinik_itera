@@ -38,5 +38,12 @@
                 Login Admin
             </x-primary-button>
         </div>
+
+        <!-- Forgot Password Link -->
+        <div class="text-center">
+            <a href="{{ route('admin.password.request') }}" class="text-sm text-black-400 hover:text-black-500 font-medium">
+                Lupa Password?
+            </a>
+        </div>
     </form>
 </x-guest-layout>

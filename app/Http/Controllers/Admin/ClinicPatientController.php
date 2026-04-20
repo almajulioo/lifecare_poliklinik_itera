@@ -98,6 +98,33 @@ class ClinicPatientController extends Controller
     }
 
     /**
+     * Get app user data for automatic form population via AJAX
+     */
+    public function getAppUserData($userId)
+    {
+        try {
+            $user = User::find($userId);
+            
+            if (!$user) {
+                return response()->json(['error' => 'User tidak ditemukan'], 404);
+            }
+
+            return response()->json([
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone ?? '',
+                'nim' => $user->nim ?? '',
+                'prodi' => $user->prodi ?? '',
+                'medical_conditions' => $user->medical_conditions ?? [],
+                'notes' => $user->notes ?? '',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Store a newly created clinic patient in storage.
      */
     public function store(Request $request)

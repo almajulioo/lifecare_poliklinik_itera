@@ -5,14 +5,14 @@ namespace App\View\Components;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
-class GuestLayout extends Component
+class PatientGuestLayout extends Component
 {
     /**
      * Get the view / contents that represents the component.
-     * Used for Admin Login (without background image)
+     * Used for Patient Login (with background image)
      */
     public function render(): View
     {
-        return view('layouts.guest-admin');
+        return view('layouts.guest-patient');
     }
 }

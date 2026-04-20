@@ -10,13 +10,8 @@ use App\Http\Controllers\Admin\RekamMedisController;
 use App\Http\Controllers\Admin\AdminMedicationScheduleController;
 use App\Http\Controllers\Admin\ClinicPatientController;
 
-// Admin Authentication Routes
-Route::middleware('guest:admin')->group(function () {
-    Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
-    Route::post('/login', [AdminAuthController::class, 'login']);
-    Route::get('/register', [AdminAuthController::class, 'showRegister'])->name('admin.register');
-    Route::post('/register', [AdminAuthController::class, 'register']);
-});
+// Note: Admin routes are now defined inline in routes/web.php
+// This file is kept for reference only
 
 // Protected Admin Routes
 Route::middleware('auth:admin')->group(function () {
@@ -47,8 +42,13 @@ Route::middleware('auth:admin')->group(function () {
     Route::delete('/schedules/{schedule}', [AdminMedicationScheduleController::class, 'destroy'])->name('admin.schedules.destroy');
     
     // Clinic Patient Management (Manajemen Pasien Poliklinik)
-    Route::get('/clinic-patients/report/pdf', [ClinicPatientController::class, 'reportPdf'])->name('admin.clinic-patients.report-pdf');
-    Route::get('/clinic-patients/download/pdf', [ClinicPatientController::class, 'downloadPdf'])->name('admin.clinic-patients.download-pdf');
+    Route::get('/clinic-patients/app-user-data/{userId}', [ClinicPatientController::class, 'getAppUserData'])
+        ->where('userId', '[0-9]+')
+        ->name('admin.clinic-patients.app-user-data');
+    Route::get('/clinic-patients/report/pdf', [ClinicPatientController::class, 'reportPdf'])
+        ->name('admin.clinic-patients.report-pdf');
+    Route::get('/clinic-patients/download/pdf', [ClinicPatientController::class, 'downloadPdf'])
+        ->name('admin.clinic-patients.download-pdf');
     Route::resource('clinic-patients', ClinicPatientController::class, ['as' => 'admin']);
     
     // Logout

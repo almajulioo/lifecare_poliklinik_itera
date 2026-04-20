@@ -8,6 +8,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\MedicationHistoryController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminManagementController;
 use App\Http\Controllers\Admin\AdminMedicationScheduleController;
 use App\Http\Controllers\Admin\PenggunaController;
 use App\Http\Controllers\Admin\RiwayatController;
@@ -318,11 +319,37 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/login', [AdminAuthController::class, 'login'])
         ->name('login.submit');
 
+    // ===== Forgot Password Routes (public) =====
+    Route::get('/forgot-password', [AdminAuthController::class, 'showForgotPasswordForm'])
+        ->name('password.request');
+
+    Route::post('/forgot-password', [AdminAuthController::class, 'sendResetLink'])
+        ->name('password.email');
+
+    Route::get('/reset-password/{token}', [AdminAuthController::class, 'showResetForm'])
+        ->name('password.reset');
+
+    Route::post('/reset-password', [AdminAuthController::class, 'resetPassword'])
+        ->name('password.update');
+
     // ===== Protected Admin Area =====
     Route::middleware('auth:admin')->group(function () {
 
+        Route::post('/logout', [AdminAuthController::class, 'logout'])
+            ->name('logout');
+
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
+
+        // Admin Management
+        Route::get('/management', [AdminManagementController::class, 'index'])
+            ->name('management.index');
+        Route::get('/management/create', [AdminManagementController::class, 'create'])
+            ->name('management.create');
+        Route::post('/management', [AdminManagementController::class, 'store'])
+            ->name('management.store');
+        Route::delete('/management/{admin}', [AdminManagementController::class, 'destroy'])
+            ->name('management.destroy');
 
         // Pengguna Management
         Route::resource('pengguna', PenggunaController::class);
@@ -342,6 +369,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Clinic Patient Management (Manajemen Pasien Poliklinik)
         Route::prefix('clinic-patients')->name('clinic-patients.')->group(function () {
+            // Get app user data for automatic form population
+            Route::get('app-user-data/{userId}', [ClinicPatientController::class, 'getAppUserData'])
+                ->where('userId', '[0-9]+')
+                ->name('app-user-data');
+            
             // PDF Export routes (must be before show route)
             Route::get('report/pdf', [ClinicPatientController::class, 'reportPdf'])
                 ->name('report-pdf');  // Preview in browser (inline)

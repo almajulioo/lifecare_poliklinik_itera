@@ -150,7 +150,9 @@
                     @error('user_id')
                         <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                     @enderror
-                    <p class="text-xs text-gray-500 mt-1">Pilih pengguna aplikasi jika pasien sudah memiliki akun. Jika tidak ada, biarkan kosong</p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        <strong>💡 Tip:</strong> Saat Anda memilih pengguna aplikasi, data email, nomor telepon, kondisi medis, dan catatan akan otomatis terisi dari akun pengguna. Anda masih dapat mengubahnya sesuai kebutuhan.
+                    </p>
                 </div>
             </div>
 
@@ -275,6 +277,143 @@
 </div>
 
 <script>
+// Menyimpan data awal pasien sebelum perubahan user selection
+let initialPatientData = {
+    name: '',
+    email: '',
+    phone: '',
+};
+
+// Simpan data awal saat form pertama kali load
+document.addEventListener('DOMContentLoaded', function() {
+    initialPatientData.name = document.getElementById('name').value || '';
+    initialPatientData.email = document.getElementById('email').value || '';
+    initialPatientData.phone = document.getElementById('phone').value || '';
+    
+    // Tambahkan event listener untuk user_id dropdown
+    document.getElementById('user_id').addEventListener('change', handleUserSelection);
+});
+
+/**
+ * Handle perubahan user selection - fetch dan populate data otomatis
+ */
+async function handleUserSelection() {
+    const userSelect = document.getElementById('user_id');
+    const userId = userSelect.value;
+
+    if (!userId) {
+        // Jika tidak ada user yang dipilih, restore data awal
+        clearAppUserData();
+        return;
+    }
+
+    try {
+        // Fetch data user dari API endpoint
+        const response = await fetch(`{{ url('/admin/clinic-patients/app-user-data') }}/${userId}`);
+        
+        if (!response.ok) {
+            alert('Gagal mengambil data pengguna');
+            clearAppUserData();
+            return;
+        }
+
+        const userData = await response.json();
+        populateFormWithUserData(userData);
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        alert('Terjadi kesalahan saat mengambil data pengguna');
+        clearAppUserData();
+    }
+}
+
+/**
+ * Populate form fields dengan data dari user yang dipilih
+ */
+function populateFormWithUserData(userData) {
+    // Isi email dari user
+    if (userData.email) {
+        document.getElementById('email').value = userData.email;
+    }
+    
+    // Isi phone jika ada
+    if (userData.phone) {
+        document.getElementById('phone').value = userData.phone;
+    }
+
+    // Jika name masih kosong, isi dengan nama user
+    const nameField = document.getElementById('name');
+    if (!nameField.value && userData.name) {
+        nameField.value = userData.name;
+    }
+
+    // Populate medical conditions jika ada
+    if (userData.medical_conditions && Array.isArray(userData.medical_conditions) && userData.medical_conditions.length > 0) {
+        const container = document.getElementById('medicalConditionsContainer');
+        container.innerHTML = '';
+        
+        userData.medical_conditions.forEach((condition, index) => {
+            if (condition) {
+                const newItem = document.createElement('div');
+                newItem.className = 'flex gap-2 items-start medical-condition-item';
+                newItem.innerHTML = `
+                    <input 
+                        type="text"
+                        name="medical_conditions[${index}]"
+                        value="${condition}"
+                        placeholder="Masukkan kondisi medis (contoh: Anemia, Alergi, dsb)"
+                        class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <button 
+                        type="button"
+                        onclick="removeMedicalCondition(this)"
+                        class="px-3 py-2.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors font-medium text-sm whitespace-nowrap"
+                    >
+                        Hapus
+                    </button>
+                `;
+                container.appendChild(newItem);
+            }
+        });
+    }
+
+    // Populate notes jika ada
+    if (userData.notes) {
+        document.getElementById('notes').value = userData.notes;
+    }
+}
+
+/**
+ * Clear data app user dan restore ke data awal
+ */
+function clearAppUserData() {
+    // Hanya clear email dan phone, biarkan name tetap apa yang user input
+    document.getElementById('email').value = initialPatientData.email;
+    document.getElementById('phone').value = initialPatientData.phone;
+    
+    // Reset medical conditions ke default satu input kosong
+    const container = document.getElementById('medicalConditionsContainer');
+    container.innerHTML = `
+        <div class="flex gap-2 items-start medical-condition-item">
+            <input 
+                type="text"
+                name="medical_conditions[0]"
+                placeholder="Masukkan kondisi medis (contoh: Anemia, Alergi, dsb)"
+                class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button 
+                type="button"
+                onclick="removeMedicalCondition(this)"
+                class="px-3 py-2.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors font-medium text-sm whitespace-nowrap"
+            >
+                Hapus
+            </button>
+        </div>
+    `;
+    
+    // Clear notes
+    document.getElementById('notes').value = '';
+}
+
 function addMedicalCondition() {
     const container = document.getElementById('medicalConditionsContainer');
     const index = container.querySelectorAll('.medical-condition-item').length;

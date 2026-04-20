@@ -1,4 +1,4 @@
-<x-guest-layout>
+<x-patient-guest-layout>
     <!-- Title Section -->
     <div class="text-center px-6 mt-4">
         <h1 class="text-3xl font-bold text-gray-900 mb-3">Buat Akun Baru</h1>
@@ -189,4 +189,4 @@
         });
         </script>
     </form>
-</x-guest-layout>
+</x-patient-guest-layout>

@@ -44,8 +44,11 @@
                         Kondisi Medis
                     </label>
                     <div id="medicalConditionsContainer" class="space-y-3">
-                        @if($user->medical_conditions && count($user->medical_conditions) > 0)
-                            @foreach($user->medical_conditions as $index => $condition)
+                        @php
+                            $medicalConditions = is_array($user->medical_conditions) ? $user->medical_conditions : [];
+                        @endphp
+                        @if(count($medicalConditions) > 0)
+                            @foreach($medicalConditions as $index => $condition)
                                 <div class="flex gap-2 items-start medical-condition-item">
                                     <input 
                                         type="text"
@@ -78,6 +81,9 @@
                                 >
                                     Hapus
                                 </button>
+                            </div>
+                        @endif
+                    </div>
                             </div>
                         @endif
                     </div>
@@ -131,16 +137,15 @@
     </x-admin.card>
 
     <!-- Current Medications Card -->
-    @if($user->medicationSchedules->count() > 0)
+    @if($user->medicationSchedules && $user->medicationSchedules->count() > 0)
         <x-admin.card>
             <h3 class="text-sm font-semibold text-gray-900 mb-4">Obat Saat Ini</h3>
             <div class="space-y-3">
                 @foreach($user->medicationSchedules as $schedule)
                     <div class="flex items-start justify-between p-3 border border-gray-200 rounded-lg">
                         <div class="flex-1">
-                            <p class="text-sm font-medium text-gray-900">{{ $schedule->medicine->name ?? 'Obat Tidak Ditemukan' }}</p>
-                            <p class="text-xs text-gray-600 mt-1">{{ $schedule->medicine->dose ?? '-' }}</p>
-                            <p class="text-xs text-gray-600 mt-1">{{ $schedule->frequency ?? '-' }}</p>
+                            <p class="text-sm font-medium text-gray-900">{{ $schedule->medicine?->name ?? 'Obat Tidak Ditemukan' }}</p>
+                            <p class="text-xs text-gray-600 mt-1">{{ $schedule->medicine?->dose ?? '-' }} {{ $schedule->medicine?->unit ?? '' }} | {{ $schedule->frequency ?? '-' }}</p>
                         </div>
                         @if($schedule->is_active)
                             <x-admin.badge color="green">Aktif</x-admin.badge>

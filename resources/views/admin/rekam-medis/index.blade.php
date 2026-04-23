@@ -34,17 +34,20 @@
                 <div class="space-y-2">
                     @forelse($users as $user)
                         <a href="?user_id={{ $user->id }}" class="flex items-start gap-3 p-3 rounded-lg transition-colors {{ $selectedUser && $selectedUser->id === $user->id ? 'bg-blue-50 border-l-4 border-blue-600' : 'hover:bg-gray-50' }}">
-                            <div class="w-2 h-2 rounded-full {{ $user->medicationSchedules->count() > 0 ? 'bg-green-500' : 'bg-yellow-500' }} flex-shrink-0 mt-1"></div>
+                            <div class="w-2 h-2 rounded-full {{ $user->medicationSchedules && $user->medicationSchedules->count() > 0 ? 'bg-green-500' : 'bg-yellow-500' }} flex-shrink-0 mt-1"></div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-gray-900 truncate">{{ $user->name }}</p>
                                 <p class="text-xs text-gray-600">NIM: {{ $user->nim ?? '-' }}</p>
-                                @if($user->medical_conditions && count($user->medical_conditions) > 0)
+                                @php
+                                    $medicalConditions = is_array($user->medical_conditions) ? $user->medical_conditions : [];
+                                @endphp
+                                @if(count($medicalConditions) > 0)
                                     <div class="flex gap-2 mt-2 flex-wrap">
-                                        @foreach(array_slice($user->medical_conditions, 0, 2) as $condition)
+                                        @foreach(array_slice($medicalConditions, 0, 2) as $condition)
                                             <x-admin.badge color="blue">{{ $condition }}</x-admin.badge>
                                         @endforeach
-                                        @if(count($user->medical_conditions) > 2)
-                                            <x-admin.badge color="gray">+{{ count($user->medical_conditions) - 2 }}</x-admin.badge>
+                                        @if(count($medicalConditions) > 2)
+                                            <x-admin.badge color="gray">+{{ count($medicalConditions) - 2 }}</x-admin.badge>
                                         @endif
                                     </div>
                                 @else
@@ -81,8 +84,8 @@
                                 <p class="text-sm text-gray-600">{{ $selectedUser->clinicPatient?->category ?? $selectedUser->role_user ?? 'Pengguna' }}</p>
                                 <p class="text-sm text-gray-600">NIM: {{ $selectedUser->nim ?? '-' }}</p>
                                 <div class="flex items-center gap-1 mt-1">
-                                    <span class="w-2 h-2 rounded-full {{ $selectedUser->medicationSchedules->count() > 0 ? 'bg-green-500' : 'bg-yellow-500' }}"></span>
-                                    <span class="text-xs {{ $selectedUser->medicationSchedules->count() > 0 ? 'text-green-600' : 'text-yellow-600' }} font-medium">{{ $selectedUser->medicationSchedules->count() > 0 ? 'Pasien Aktif' : 'Tidak Ada Obat' }}</span>
+                                    <span class="w-2 h-2 rounded-full {{ $selectedUser->medicationSchedules && $selectedUser->medicationSchedules->count() > 0 ? 'bg-green-500' : 'bg-yellow-500' }}"></span>
+                                    <span class="text-xs {{ $selectedUser->medicationSchedules && $selectedUser->medicationSchedules->count() > 0 ? 'text-green-600' : 'text-yellow-600' }} font-medium">{{ $selectedUser->medicationSchedules && $selectedUser->medicationSchedules->count() > 0 ? 'Pasien Aktif' : 'Tidak Ada Obat' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -95,9 +98,12 @@
                 <!-- Kondisi Medis -->
                 <x-admin.card>
                     <h3 class="text-sm font-semibold text-gray-900 mb-4">Kondisi Medis</h3>
-                    @if($selectedUser->medical_conditions && count($selectedUser->medical_conditions) > 0)
+                    @php
+                        $medicalConditions = is_array($selectedUser->medical_conditions) ? $selectedUser->medical_conditions : [];
+                    @endphp
+                    @if(count($medicalConditions) > 0)
                         <div class="space-y-3">
-                            @foreach($selectedUser->medical_conditions as $index => $condition)
+                            @foreach($medicalConditions as $index => $condition)
                                 <div class="p-3 border-l-4 border-blue-500 bg-blue-50 rounded">
                                     <div class="flex items-start justify-between">
                                         <div class="flex-1">
@@ -126,7 +132,7 @@
                 @endif
 
                 <!-- Obat Saat Ini -->
-                @if($selectedUser->medicationSchedules->count() > 0)
+                @if($selectedUser->medicationSchedules && $selectedUser->medicationSchedules->count() > 0)
                     <x-admin.card>
                         <h3 class="text-sm font-semibold text-gray-900 mb-4">Obat Saat Ini</h3>
                         <div class="space-y-3">
@@ -134,7 +140,7 @@
                                 <div class="flex items-start justify-between p-3 border border-gray-200 rounded-lg">
                                     <div class="flex-1">
                                         <p class="text-sm font-medium text-gray-900">{{ $schedule->medicine?->name ?? 'Obat Tidak Ditemukan' }}</p>
-                                        <p class="text-xs text-gray-600 mt-1">{{ $schedule->medicine?->dose ?? '-' }} | {{ $schedule->frequency ?? '-' }}</p>
+                                        <p class="text-xs text-gray-600 mt-1">{{ $schedule->medicine?->dose ?? '-' }} {{ $schedule->medicine?->unit ?? '' }} | {{ $schedule->frequency ?? '-' }}</p>
                                     </div>
                                     @if($schedule->is_active)
                                         <x-admin.badge color="green">Aktif</x-admin.badge>
@@ -155,7 +161,7 @@
                 @endif
 
                 <!-- Riwayat Log Obat -->
-                @if($selectedUser->medicationLogs->count() > 0)
+                @if($selectedUser->medicationLogs && $selectedUser->medicationLogs->count() > 0)
                     <x-admin.card>
                         <h3 class="text-sm font-semibold text-gray-900 mb-4">Riwayat Konsumsi Obat Terbaru</h3>
                         <div class="space-y-3">
@@ -163,9 +169,9 @@
                                 <div class="flex items-start justify-between p-3 border border-gray-200 rounded-lg">
                                     <div class="flex-1">
                                         <p class="text-sm font-medium text-gray-900">{{ $log->medicationSchedule?->medicine?->name ?? 'Obat Tidak Ditemukan' }}</p>
-                                        <p class="text-xs text-gray-600 mt-1">{{ $log->created_at->format('d M Y H:i') }}</p>
+                                        <p class="text-xs text-gray-600 mt-1">{{ $log->created_at ? $log->created_at->format('d M Y H:i') : '-' }}</p>
                                     </div>
-                                    @if($log->status === 'taken')
+                                    @if($log->status === 'taken' || $log->status === 'completed')
                                         <span class="text-green-600 font-bold text-lg">✓</span>
                                     @elseif($log->status === 'missed')
                                         <span class="text-red-600 font-bold text-lg">✕</span>

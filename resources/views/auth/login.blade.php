@@ -5,8 +5,8 @@
     <!-- Title Section -->
     <div class="text-center px-6 mt-4">
         <h1 class="text-3xl font-bold text-gray-900 mb-3">Selamat Datang!</h1>
-        <p class="text-sm text-gray-600 mb-3">Log in to manage your clinic appointments and healthcare</p>
-        <p class="text-sm text-gray-600">Don't have an account? <a href="{{ route('register') }}" style="color: var(--black-color);" class="font-semibold hover:underline underline">Sign up</a></p>
+        <p class="text-sm text-gray-600 mb-3">Masuk untuk menggunakan aplikasi</p>
+        <p class="text-sm text-gray-600">Belum punya akun? <a href="{{ route('register') }}" style="color: var(--black-color);" class="font-semibold hover:underline underline">Daftar</a></p>
     </div>
 
     <form method="POST" action="{{ route('login') }}" class="space-y-2 p-6">

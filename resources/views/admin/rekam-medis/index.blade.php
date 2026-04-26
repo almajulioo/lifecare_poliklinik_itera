@@ -89,9 +89,6 @@
                                 </div>
                             </div>
                         </div>
-                        <a href="{{ route('admin.rekam-medis.edit', $selectedUser) }}" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex-shrink-0">
-                            Edit
-                        </a>
                     </div>
                 </x-admin.card>
 

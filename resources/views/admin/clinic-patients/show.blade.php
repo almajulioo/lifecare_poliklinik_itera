@@ -77,11 +77,39 @@
             <div class="space-y-4">
                 <div>
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</p>
-                    <p class="text-gray-900 mt-1">{{ $patient->email ?? '-' }}</p>
+                    <p class="text-gray-900 mt-1">{{ $patient->user?->email ?? $patient->email ?? '-' }}</p>
                 </div>
                 <div>
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Nomor Telepon</p>
-                    <p class="text-gray-900 mt-1">{{ $patient->phone ?? '-' }}</p>
+                    <p class="text-gray-900 mt-1">{{ $patient->user?->phone ?? $patient->phone ?? '-' }}</p>
+                </div>
+            </div>
+        </x-admin.card>
+
+        <!-- Personal Information -->
+        <x-admin.card title="Informasi Pribadi">
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Usia</p>
+                        <p class="text-gray-900 mt-1">
+                            @if($patient->user?->age)
+                                {{ $patient->user->age }} tahun
+                            @else
+                                -
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Jenis Kelamin</p>
+                        <p class="text-gray-900 mt-1">
+                            @if($patient->user?->gender)
+                                {{ ucfirst(str_replace('-', ' ', $patient->user->gender)) }}
+                            @else
+                                -
+                            @endif
+                        </p>
+                    </div>
                 </div>
             </div>
         </x-admin.card>
@@ -131,6 +159,29 @@
                         <p class="text-gray-900 mt-1">{{ $patient->user->prodi ?? '-' }}</p>
                     </div>
                 </div>
+            </div>
+        </x-admin.card>
+    @endif
+
+    <!-- Medical Conditions Section -->
+    @if($patient->user?->medical_conditions && count($patient->user?->medical_conditions) > 0)
+        <x-admin.card title="Kondisi Medis">
+            <div class="space-y-2">
+                @foreach($patient->user->medical_conditions as $condition)
+                    <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                        <span class="text-blue-600 font-bold">→</span>
+                        <span class="text-gray-700">{{ $condition }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </x-admin.card>
+    @endif
+
+    <!-- Medical Notes Section -->
+    @if($patient->user?->notes)
+        <x-admin.card title="Catatan Medis">
+            <div class="prose prose-sm max-w-none">
+                <p class="text-gray-700 whitespace-pre-wrap">{{ $patient->user->notes }}</p>
             </div>
         </x-admin.card>
     @endif

@@ -115,6 +115,59 @@
             </div>
         </div>
 
+        <!-- Usia dan Jenis Kelamin (untuk semua user) -->
+        <div class="space-y-2 p-4 bg-green-50 rounded-lg border border-green-200 mt-2">
+            <div class="grid grid-cols-2 gap-3">
+                <!-- Usia -->
+                <div>
+                    <label for="age" class="block font-semibold text-sm text-gray-800 mb-2.5">Usia (Tahun)</label>
+                    <input
+                        id="age"
+                        type="number"
+                        name="age"
+                        value="{{ old('age') }}"
+                        min="1"
+                        max="150"
+                        placeholder="Contoh: 20"
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition" 
+                        style="focus:ring-color: var(--primary-color);"
+                    />
+                    <x-input-error :messages="$errors->get('age')" class="mt-2 text-sm" />
+                </div>
+
+                <!-- Jenis Kelamin -->
+                <div>
+                    <label for="gender" class="block font-semibold text-sm text-gray-800 mb-2.5">Jenis Kelamin</label>
+                    <select
+                        id="gender"
+                        name="gender"
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition bg-white" 
+                        style="focus:ring-color: var(--primary-color);"
+                    >
+                        <option value="">-- Pilih Jenis Kelamin --</option>
+                        <option value="laki-laki" {{ old('gender') === 'laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                        <option value="perempuan" {{ old('gender') === 'perempuan' ? 'selected' : '' }}>Perempuan</option>
+                    </select>
+                    <x-input-error :messages="$errors->get('gender')" class="mt-2 text-sm" />
+                </div>
+            </div>
+
+            <!-- Nomor Telepon -->
+            <div>
+                <label for="phone" class="block font-semibold text-sm text-gray-800 mb-2.5">Nomor Telepon</label>
+                <input
+                    id="phone"
+                    type="tel"
+                    name="phone"
+                    value="{{ old('phone') }}"
+                    placeholder="Contoh: +62812345678"
+                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition" 
+                    style="focus:ring-color: var(--primary-color);"
+                />
+                <x-input-error :messages="$errors->get('phone')" class="mt-2 text-sm" />
+            </div>
+        </div>
+
         <!-- Email Address -->
         <div>
             <label for="email" class="block font-semibold text-sm text-gray-800 mb-2.5">Email</label>

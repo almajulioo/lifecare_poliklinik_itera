@@ -32,6 +32,9 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
             'nim' => ['nullable', 'string', 'max:255'],
             'prodi' => ['nullable', 'string', 'max:255'],
+            'age' => ['nullable', 'integer', 'min:1', 'max:150'],
+            'gender' => ['nullable', 'in:laki-laki,perempuan'],
+            'phone' => ['nullable', 'string', 'max:20'],
         ]);
 
         // Buat user baru dengan data yang tervalidasi
@@ -41,6 +44,9 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'nim' => $request->nim,
             'prodi' => $request->prodi,
+            'age' => $request->age,
+            'gender' => $request->gender,
+            'phone' => $request->phone,
             'password' => Hash::make($request->password),
         ]);
 

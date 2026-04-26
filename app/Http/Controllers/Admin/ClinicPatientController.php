@@ -134,6 +134,8 @@ class ClinicPatientController extends Controller
             'phone' => 'nullable|string|max:20',
             'email' => 'required|email|max:255|unique:clinic_patients,email',
             'status' => 'required|in:aktif,tidak_aktif',
+            'age' => 'nullable|integer|min:1|max:150',
+            'gender' => 'nullable|in:laki-laki,perempuan',
             'medical_conditions' => 'nullable|array',
             'medical_conditions.*' => 'string|max:255',
             'notes' => 'nullable|string',
@@ -155,12 +157,16 @@ class ClinicPatientController extends Controller
         $createUserAccount = $validated['create_user_account'] ?? false;
         $password = $validated['password'] ?? null;
         $prodi = $validated['prodi'] ?? null;
+        $age = $validated['age'] ?? null;
+        $gender = $validated['gender'] ?? null;
         
         unset($clinicPatientData['medical_conditions']);
         unset($clinicPatientData['notes']);
         unset($clinicPatientData['create_user_account']);
         unset($clinicPatientData['password']);
         unset($clinicPatientData['prodi']);
+        unset($clinicPatientData['age']);
+        unset($clinicPatientData['gender']);
 
         // Jika create_user_account, buat User terlebih dahulu
         if ($createUserAccount) {
@@ -171,6 +177,9 @@ class ClinicPatientController extends Controller
                 'role_user' => $validated['category'],
                 'nim' => $validated['identity_number'] ?? null,
                 'prodi' => $prodi,
+                'age' => $age,
+                'gender' => $gender,
+                'phone' => $validated['phone'],
                 'password' => Hash::make($password),
                 'timezone' => 'Asia/Jakarta',
             ]);
@@ -240,12 +249,18 @@ class ClinicPatientController extends Controller
             $prodi = $clinicPatient->user->prodi;
         }
 
+        // Prepare age and gender data
+        $age = $clinicPatient->user?->age ?? null;
+        $gender = $clinicPatient->user?->gender ?? null;
+
         return view('admin.clinic-patients.edit', [
             'patient' => $clinicPatient,
             'availableUsers' => $availableUsers,
             'medicalConditions' => $medicalConditions,
             'notes' => $notes,
             'prodi' => $prodi,
+            'age' => $age,
+            'gender' => $gender,
         ]);
     }
 
@@ -262,6 +277,8 @@ class ClinicPatientController extends Controller
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'status' => 'required|in:aktif,tidak_aktif',
+            'age' => 'nullable|integer|min:1|max:150',
+            'gender' => 'nullable|in:laki-laki,perempuan',
             'medical_conditions' => 'nullable|array',
             'medical_conditions.*' => 'string|max:255',
             'notes' => 'nullable|string',
@@ -271,9 +288,13 @@ class ClinicPatientController extends Controller
         $clinicPatientData = $validated;
         $medicalConditions = $validated['medical_conditions'] ?? null;
         $notes = $validated['notes'] ?? null;
+        $age = $validated['age'] ?? null;
+        $gender = $validated['gender'] ?? null;
         
         unset($clinicPatientData['medical_conditions']);
         unset($clinicPatientData['notes']);
+        unset($clinicPatientData['age']);
+        unset($clinicPatientData['gender']);
 
         // Update clinic patient
         $clinicPatient->update($clinicPatientData);
@@ -296,6 +317,16 @@ class ClinicPatientController extends Controller
             // Sync phone if provided
             if ($validated['phone']) {
                 $userData['phone'] = $validated['phone'];
+            }
+            
+            // Sync age if provided
+            if ($age !== null) {
+                $userData['age'] = $age;
+            }
+            
+            // Sync gender if provided
+            if ($gender !== null) {
+                $userData['gender'] = $gender;
             }
             
             // Sync medical conditions

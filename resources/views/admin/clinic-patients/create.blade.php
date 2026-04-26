@@ -126,6 +126,54 @@
                 </div>
             </div>
 
+            <!-- Personal Info Section -->
+            <div class="space-y-4 border-t border-gray-200 pt-6">
+                <h3 class="font-semibold text-gray-900">Informasi Pribadi</h3>
+                
+                <!-- Age -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="age" class="block text-sm font-medium text-gray-700 mb-1">
+                            Usia (Tahun)
+                        </label>
+                        <input 
+                            type="number"
+                            id="age"
+                            name="age"
+                            value="{{ old('age') }}"
+                            min="1"
+                            max="150"
+                            placeholder="Contoh: 20"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                   @error('age') border-red-500 focus:ring-red-500 @enderror"
+                        />
+                        @error('age')
+                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Gender -->
+                    <div>
+                        <label for="gender" class="block text-sm font-medium text-gray-700 mb-1">
+                            Jenis Kelamin
+                        </label>
+                        <select 
+                            id="gender"
+                            name="gender"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                   @error('gender') border-red-500 focus:ring-red-500 @enderror"
+                        >
+                            <option value="">-- Pilih Jenis Kelamin --</option>
+                            <option value="laki-laki" {{ old('gender') === 'laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                            <option value="perempuan" {{ old('gender') === 'perempuan' ? 'selected' : '' }}>Perempuan</option>
+                        </select>
+                        @error('gender')
+                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
             <!-- Account Section -->
             <div class="space-y-4 border-t border-gray-200 pt-6">
                 <h3 class="font-semibold text-gray-900">Akun Aplikasi</h3>

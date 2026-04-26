@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Models\MedicationSchedule;
+use App\Observers\MedicationScheduleObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register observer untuk auto-sync status pasien berdasarkan jadwal minum obat
+        MedicationSchedule::observe(MedicationScheduleObserver::class);
     }
 }

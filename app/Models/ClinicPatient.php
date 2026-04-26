@@ -50,6 +50,52 @@ class ClinicPatient extends Model
     }
 
     /**
+     * Check apakah pasien memiliki jadwal minum obat aktif
+     * Digunakan untuk auto-determine status pasien
+     */
+    public function hasActiveMedicationSchedule(): bool
+    {
+        if (!$this->user_id) {
+            return false; // Pasien tidak punya akun aplikasi, tidak bisa punya jadwal
+        }
+
+        // Cek apakah user punya jadwal minum obat yang masih berlaku
+        $activeSchedule = MedicationSchedule::where('user_id', $this->user_id)
+            ->where('is_active', true)
+            ->where('start_date', '<=', now()->toDateString())
+            ->where(function ($query) {
+                // end_date sudah lewat atau belum ada end_date
+                $query->whereNull('end_date')
+                      ->orWhere('end_date', '>=', now()->toDateString());
+            })
+            ->first();
+
+        return $activeSchedule !== null;
+    }
+
+    /**
+     * Determine status otomatis berdasarkan jadwal minum obat
+     * - Jika ada jadwal aktif → "aktif"
+     * - Jika tidak ada jadwal → "tidak_aktif"
+     */
+    public function getAutomaticStatus(): string
+    {
+        return $this->hasActiveMedicationSchedule() ? 'aktif' : 'tidak_aktif';
+    }
+
+    /**
+     * Update status pasien jika berubah berdasarkan jadwal
+     * Digunakan setiap kali ada perubahan jadwal atau hari berubah
+     */
+    public function syncStatusWithSchedule(): void
+    {
+        $newStatus = $this->getAutomaticStatus();
+        if ($this->status !== $newStatus) {
+            $this->update(['status' => $newStatus]);
+        }
+    }
+
+    /**
      * Get category label
      */
     public function getCategoryLabel(): string

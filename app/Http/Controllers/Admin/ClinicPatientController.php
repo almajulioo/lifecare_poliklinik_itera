@@ -296,6 +296,10 @@ class ClinicPatientController extends Controller
         unset($clinicPatientData['age']);
         unset($clinicPatientData['gender']);
 
+        // IMPORTANT: Override status dengan automatic status berdasarkan jadwal minum obat
+        // Status tidak bisa diubah manual, selalu ditentukan oleh sistem
+        $clinicPatientData['status'] = $clinicPatient->getAutomaticStatus();
+
         // Update clinic patient
         $clinicPatient->update($clinicPatientData);
 

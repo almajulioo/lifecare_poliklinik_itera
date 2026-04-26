@@ -12,13 +12,13 @@ self.addEventListener('activate', (event) => {
 // Initialize the Firebase app in the service worker by passing the generated config
 // You should update these values with your actual Firebase config
 const firebaseConfig = {
-    apiKey: "AIzaSyC3sDrzPHUrTTISZBz1Rq-eO_CR12Ecyhc",
-    authDomain: "lifecare-4accb.firebaseapp.com",
-    projectId: "lifecare-4accb",
-    storageBucket: "lifecare-4accb.firebasestorage.app",
-    messagingSenderId: "159130285382",
-    appId: "1:159130285382:web:e04a71e99f949663356147",
-    measurementId: "G-91JY50NGSG"
+  apiKey: "AIzaSyC4l8cv22eHJrBX4ezcJGVl0CSzgvoJnvA",
+  authDomain: "lifecare-poliklinik-itera.firebaseapp.com",
+  projectId: "lifecare-poliklinik-itera",
+  storageBucket: "lifecare-poliklinik-itera.firebasestorage.app",
+  messagingSenderId: "885870142104",
+  appId: "1:885870142104:web:5e94de5f1f00672828a6ed",
+  measurementId: "G-R784D7MWEF"
 };
 
 // Check if config has been updated from default placeholders

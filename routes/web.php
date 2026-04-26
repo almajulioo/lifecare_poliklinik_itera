@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\RiwayatController;
 use App\Http\Controllers\Admin\ObatController;
 use App\Http\Controllers\Admin\RekamMedisController;
 use App\Http\Controllers\Admin\ClinicPatientController;
+use App\Http\Controllers\FcmTestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -228,6 +229,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/statistics/weekly-stats', [MedicationHistoryController::class, 'weeklyStats'])
             ->name('statistics.weekly-stats');
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | FCM TEST ROUTES
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/fcm-test', [FcmTestController::class, 'index'])->name('fcm.test.index');
+    Route::post('/fcm-test', [FcmTestController::class, 'sendNotification'])->name('fcm.test.send');
+    Route::post('/fcm-token', [FcmTestController::class, 'saveToken'])->name('fcm.test.save-token');
 });
 
 /*
@@ -523,5 +533,6 @@ Route::get('/debug/pdf/clinic-report', function() {
     $pdf->setPaper('A4', 'portrait');
     return $pdf->stream('Laporan-Poliklinik-' . $month . '.pdf');
 })->name('debug.pdf.clinic-report');
+
 
 require __DIR__.'/auth.php';

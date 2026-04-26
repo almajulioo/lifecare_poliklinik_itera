@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
@@ -19,6 +20,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('122140068'),
                 'nim' => '122140068',
                 'prodi' => 'Teknik Informatika',
+                'fcm_token' => Str::random(152),
                 'notification_preferences' => json_encode(['email' => true, 'browser' => true]),
                 'timezone' => 'Asia/Jakarta',
                 'medical_conditions' => json_encode(['hypertension']),
@@ -30,6 +32,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'nim' => '122010001',
                 'prodi' => 'Teknik Informatika',
+                'fcm_token' => Str::random(152),
                 'notification_preferences' => json_encode(['email' => true, 'browser' => true]),
                 'timezone' => 'Asia/Jakarta',
                 'medical_conditions' => json_encode(['diabetes']),
@@ -41,6 +44,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'nim' => '122020002',
                 'prodi' => 'Sistem Informasi',
+                'fcm_token' => Str::random(152),
                 'notification_preferences' => json_encode(['email' => true, 'browser' => true]),
                 'timezone' => 'Asia/Jakarta',
                 'medical_conditions' => json_encode(['hypertension']),
@@ -52,6 +56,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'nim' => '122030003',
                 'prodi' => 'Teknik Elektro',
+                'fcm_token' => Str::random(152),
                 'notification_preferences' => json_encode(['email' => false, 'browser' => true]),
                 'timezone' => 'Asia/Jakarta',
                 'medical_conditions' => json_encode([]),
@@ -63,6 +68,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'nim' => '122040004',
                 'prodi' => 'Teknik Mesin',
+                'fcm_token' => Str::random(152),
                 'notification_preferences' => json_encode(['email' => true, 'browser' => false]),
                 'timezone' => 'Asia/Jakarta',
                 'medical_conditions' => json_encode(['asthma']),
@@ -74,6 +80,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'nim' => '122050005',
                 'prodi' => 'Teknik Sipil',
+                'fcm_token' => Str::random(152),
                 'notification_preferences' => json_encode(['email' => true, 'browser' => true]),
                 'timezone' => 'Asia/Jakarta',
                 'medical_conditions' => json_encode(['heart_disease']),
@@ -86,6 +93,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'nim' => null,
                 'prodi' => null,
+                'fcm_token' => Str::random(152),
                 'notification_preferences' => json_encode(['email' => true, 'browser' => true]),
                 'timezone' => 'Asia/Jakarta',
                 'medical_conditions' => json_encode([]),
@@ -97,6 +105,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'nim' => null,
                 'prodi' => null,
+                'fcm_token' => Str::random(152),
                 'notification_preferences' => json_encode(['email' => true, 'browser' => true]),
                 'timezone' => 'Asia/Jakarta',
                 'medical_conditions' => json_encode([]),

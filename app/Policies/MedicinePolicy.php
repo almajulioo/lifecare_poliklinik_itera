@@ -21,8 +21,10 @@ class MedicinePolicy
      */
     public function create($user): bool
     {
-        // Only ADMIN can create medicines
-        return $this->isAdmin($user);
+        // Both ADMIN and authenticated USER (Patient) can create medicines
+        // - ADMIN creates medicines for general use (source_type: ADMIN)
+        // - USER creates personal medicines (source_type: PATIENT)
+        return $user instanceof Admin || $user instanceof User;
     }
 
     /**

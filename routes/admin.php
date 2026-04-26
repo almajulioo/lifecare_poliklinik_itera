@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\Admin\PenggunaController;
 use App\Http\Controllers\Admin\RiwayatController;
 use App\Http\Controllers\Admin\ObatController;
 use App\Http\Controllers\Admin\RekamMedisController;
@@ -17,9 +16,6 @@ use App\Http\Controllers\Admin\ClinicPatientController;
 Route::middleware('auth:admin')->group(function () {
     // Dashboard
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-
-    // Pengguna Management
-    Route::resource('pengguna', PenggunaController::class, ['as' => 'admin']);
     
     // Riwayat Pengingat
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('admin.riwayat.index');

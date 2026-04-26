@@ -50,7 +50,7 @@
                         type="text"
                         id="identity_number"
                         name="identity_number"
-                        value="{{ old('identity_number', $patient->identity_number) }}"
+                        value="{{ old('identity_number', $patient->user?->nim ?? $patient->identity_number) }}"
                         placeholder="Masukkan nomor identitas"
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
                                @error('identity_number') border-red-500 focus:ring-red-500 @enderror"
@@ -58,6 +58,28 @@
                     @error('identity_number')
                         <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                     @enderror
+                    @if($patient->user?->nim)
+                        <p class="text-xs text-gray-500 mt-1">💡 NIM dari akun aplikasi pengguna - dapat diedit jika diperlukan</p>
+                    @endif
+                </div>
+
+                <!-- Program Studi -->
+                <div>
+                    <label for="prodi" class="block text-sm font-medium text-gray-700 mb-1">
+                        Program Studi
+                    </label>
+                    <input 
+                        type="text"
+                        id="prodi"
+                        name="prodi"
+                        value="{{ old('prodi', $prodi) }}"
+                        placeholder="Program studi (hanya baca dari akun aplikasi)"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                        readonly
+                    />
+                    @if($prodi)
+                        <p class="text-xs text-gray-500 mt-1">💡 Prodi dari akun aplikasi pengguna (read-only)</p>
+                    @endif
                 </div>
 
                 <!-- Category -->
@@ -96,7 +118,7 @@
                         type="email"
                         id="email"
                         name="email"
-                        value="{{ old('email', $patient->email) }}"
+                        value="{{ old('email', $patient->user?->email ?? $patient->email) }}"
                         placeholder="Alamat email (opsional)"
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
                                @error('email') border-red-500 focus:ring-red-500 @enderror"
@@ -104,7 +126,7 @@
                     @error('email')
                         <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                     @enderror
-                    <p class="text-xs text-gray-500 mt-1">Jika pasien memiliki akun aplikasi, email harus sesuai dengan akun</p>
+                    <p class="text-xs text-gray-500 mt-1">Jika pasien memiliki akun aplikasi, email akan otomatis didapatkan dari akun</p>
                 </div>
 
                 <!-- Phone -->
@@ -116,7 +138,7 @@
                         type="text"
                         id="phone"
                         name="phone"
-                        value="{{ old('phone', $patient->phone) }}"
+                        value="{{ old('phone', $patient->user?->phone ?? $patient->phone) }}"
                         placeholder="Nomor telepon (opsional)"
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
                                @error('phone') border-red-500 focus:ring-red-500 @enderror"
@@ -187,8 +209,8 @@
                                     </button>
                                 </div>
                             @endforeach
-                        @elseif($patient->user && $patient->user->medical_conditions)
-                            @foreach($patient->user->medical_conditions as $index => $condition)
+                        @elseif($medicalConditions && count($medicalConditions) > 0)
+                            @foreach($medicalConditions as $index => $condition)
                                 <div class="flex gap-2 items-start medical-condition-item">
                                     <input 
                                         type="text"
@@ -250,7 +272,7 @@
                         placeholder="Masukkan catatan medis tambahan (opsional)"
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
                                @error('notes') border-red-500 focus:ring-red-500 @enderror"
-                    >{{ old('notes', $patient->user?->notes ?? '') }}</textarea>
+                    >{{ old('notes', $notes) }}</textarea>
                     @error('notes')
                         <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                     @enderror

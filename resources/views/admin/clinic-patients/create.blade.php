@@ -126,33 +126,90 @@
                 </div>
             </div>
 
-            <!-- App User Section -->
+            <!-- Account Section -->
             <div class="space-y-4 border-t border-gray-200 pt-6">
-                <h3 class="font-semibold text-gray-900">Status Pengguna Aplikasi</h3>
+                <h3 class="font-semibold text-gray-900">Akun Aplikasi</h3>
+                <p class="text-sm text-gray-600">Buat akun aplikasi untuk pasien ini (untuk login dan akses aplikasi)</p>
                 
-                <!-- User Selection -->
+                <!-- Create Account Toggle -->
                 <div>
-                    <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">
-                        Link ke Pengguna Aplikasi
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            id="create_user_account"
+                            name="create_user_account"
+                            value="1"
+                            {{ old('create_user_account') ? 'checked' : '' }}
+                            class="w-4 h-4 rounded border-gray-300 focus:ring-blue-500"
+                        />
+                        <span class="text-sm font-medium text-gray-700">Buat akun aplikasi untuk pasien ini</span>
                     </label>
-                    <select 
-                        id="user_id"
-                        name="user_id"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                        <option value="">-- Pasien Tidak Menggunakan Aplikasi --</option>
-                        @foreach($availableUsers as $user)
-                            <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>
-                                {{ $user->name }} ({{ $user->email }})
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('user_id')
-                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                    @enderror
-                    <p class="text-xs text-gray-500 mt-1">
-                        <strong>💡 Tip:</strong> Saat Anda memilih pengguna aplikasi, data email, nomor telepon, kondisi medis, dan catatan akan otomatis terisi dari akun pengguna. Anda masih dapat mengubahnya sesuai kebutuhan.
-                    </p>
+                </div>
+
+                <!-- Account Credentials Section (shown only if create_user_account is checked) -->
+                <div id="account-fields" class="{{ old('create_user_account') ? '' : 'hidden' }} space-y-4">
+                    <!-- Program Studi -->
+                    <div>
+                        <label for="prodi" class="block text-sm font-medium text-gray-700 mb-1">
+                            Program Studi
+                        </label>
+                        <select 
+                            id="prodi"
+                            name="prodi"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="">-- Pilih Program Studi --</option>
+                            <option value="Arsitektur" {{ old('prodi') === 'Arsitektur' ? 'selected' : '' }}>Arsitektur</option>
+                            <option value="Arsitektur Lanskap" {{ old('prodi') === 'Arsitektur Lanskap' ? 'selected' : '' }}>Arsitektur Lanskap</option>
+                            <option value="Biologi" {{ old('prodi') === 'Biologi' ? 'selected' : '' }}>Biologi</option>
+                            <option value="Teknik Informatika" {{ old('prodi') === 'Teknik Informatika' ? 'selected' : '' }}>Teknik Informatika</option>
+                            <option value="Teknik Sipil" {{ old('prodi') === 'Teknik Sipil' ? 'selected' : '' }}>Teknik Sipil</option>
+                            <option value="Teknik Mesin" {{ old('prodi') === 'Teknik Mesin' ? 'selected' : '' }}>Teknik Mesin</option>
+                            <option value="Teknik Elektro" {{ old('prodi') === 'Teknik Elektro' ? 'selected' : '' }}>Teknik Elektro</option>
+                            <option value="Matematika" {{ old('prodi') === 'Matematika' ? 'selected' : '' }}>Matematika</option>
+                            <option value="Fisika" {{ old('prodi') === 'Fisika' ? 'selected' : '' }}>Fisika</option>
+                            <option value="Kimia" {{ old('prodi') === 'Kimia' ? 'selected' : '' }}>Kimia</option>
+                            <!-- Add more prodi as needed -->
+                        </select>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                            Password <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="password" 
+                            id="password"
+                            name="password"
+                            placeholder="Minimal 8 karakter"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                   @error('password') border-red-500 focus:ring-red-500 @enderror"
+                        />
+                        @error('password')
+                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Password Confirmation -->
+                    <div>
+                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
+                            Konfirmasi Password <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="password" 
+                            id="password_confirmation"
+                            name="password_confirmation"
+                            placeholder="Ketikkan ulang password"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                   @error('password_confirmation') border-red-500 focus:ring-red-500 @enderror"
+                        />
+                        @error('password_confirmation')
+                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <p class="text-xs text-gray-500">Email akan digunakan sebagai username untuk login. Pastikan email unik dan aktif.</p>
                 </div>
             </div>
 
@@ -277,142 +334,27 @@
 </div>
 
 <script>
-// Menyimpan data awal pasien sebelum perubahan user selection
-let initialPatientData = {
-    name: '',
-    email: '',
-    phone: '',
-};
-
-// Simpan data awal saat form pertama kali load
+// Tambahkan event listener ke checkbox untuk toggle account fields
 document.addEventListener('DOMContentLoaded', function() {
-    initialPatientData.name = document.getElementById('name').value || '';
-    initialPatientData.email = document.getElementById('email').value || '';
-    initialPatientData.phone = document.getElementById('phone').value || '';
+    const createUserCheckbox = document.getElementById('create_user_account');
+    const accountFields = document.getElementById('account-fields');
     
-    // Tambahkan event listener untuk user_id dropdown
-    document.getElementById('user_id').addEventListener('change', handleUserSelection);
-});
-
-/**
- * Handle perubahan user selection - fetch dan populate data otomatis
- */
-async function handleUserSelection() {
-    const userSelect = document.getElementById('user_id');
-    const userId = userSelect.value;
-
-    if (!userId) {
-        // Jika tidak ada user yang dipilih, restore data awal
-        clearAppUserData();
-        return;
-    }
-
-    try {
-        // Fetch data user dari API endpoint
-        const response = await fetch(`{{ url('/admin/clinic-patients/app-user-data') }}/${userId}`);
-        
-        if (!response.ok) {
-            alert('Gagal mengambil data pengguna');
-            clearAppUserData();
-            return;
-        }
-
-        const userData = await response.json();
-        populateFormWithUserData(userData);
-    } catch (error) {
-        console.error('Error fetching user data:', error);
-        alert('Terjadi kesalahan saat mengambil data pengguna');
-        clearAppUserData();
-    }
-}
-
-/**
- * Populate form fields dengan data dari user yang dipilih
- */
-function populateFormWithUserData(userData) {
-    // Isi email dari user
-    if (userData.email) {
-        document.getElementById('email').value = userData.email;
-    }
-    
-    // Isi phone jika ada
-    if (userData.phone) {
-        document.getElementById('phone').value = userData.phone;
-    }
-
-    // Jika name masih kosong, isi dengan nama user
-    const nameField = document.getElementById('name');
-    if (!nameField.value && userData.name) {
-        nameField.value = userData.name;
-    }
-
-    // Populate medical conditions jika ada
-    if (userData.medical_conditions && Array.isArray(userData.medical_conditions) && userData.medical_conditions.length > 0) {
-        const container = document.getElementById('medicalConditionsContainer');
-        container.innerHTML = '';
-        
-        userData.medical_conditions.forEach((condition, index) => {
-            if (condition) {
-                const newItem = document.createElement('div');
-                newItem.className = 'flex gap-2 items-start medical-condition-item';
-                newItem.innerHTML = `
-                    <input 
-                        type="text"
-                        name="medical_conditions[${index}]"
-                        value="${condition}"
-                        placeholder="Masukkan kondisi medis (contoh: Anemia, Alergi, dsb)"
-                        class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <button 
-                        type="button"
-                        onclick="removeMedicalCondition(this)"
-                        class="px-3 py-2.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors font-medium text-sm whitespace-nowrap"
-                    >
-                        Hapus
-                    </button>
-                `;
-                container.appendChild(newItem);
+    if (createUserCheckbox) {
+        createUserCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                accountFields.classList.remove('hidden');
+                // Make password required
+                document.getElementById('password').setAttribute('required', 'required');
+                document.getElementById('password_confirmation').setAttribute('required', 'required');
+            } else {
+                accountFields.classList.add('hidden');
+                // Remove password required
+                document.getElementById('password').removeAttribute('required');
+                document.getElementById('password_confirmation').removeAttribute('required');
             }
         });
     }
-
-    // Populate notes jika ada
-    if (userData.notes) {
-        document.getElementById('notes').value = userData.notes;
-    }
-}
-
-/**
- * Clear data app user dan restore ke data awal
- */
-function clearAppUserData() {
-    // Hanya clear email dan phone, biarkan name tetap apa yang user input
-    document.getElementById('email').value = initialPatientData.email;
-    document.getElementById('phone').value = initialPatientData.phone;
-    
-    // Reset medical conditions ke default satu input kosong
-    const container = document.getElementById('medicalConditionsContainer');
-    container.innerHTML = `
-        <div class="flex gap-2 items-start medical-condition-item">
-            <input 
-                type="text"
-                name="medical_conditions[0]"
-                placeholder="Masukkan kondisi medis (contoh: Anemia, Alergi, dsb)"
-                class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <button 
-                type="button"
-                onclick="removeMedicalCondition(this)"
-                class="px-3 py-2.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors font-medium text-sm whitespace-nowrap"
-            >
-                Hapus
-            </button>
-        </div>
-    `;
-    
-    // Clear notes
-    document.getElementById('notes').value = '';
-}
+});
 
 function addMedicalCondition() {
     const container = document.getElementById('medicalConditionsContainer');
@@ -446,7 +388,7 @@ function removeMedicalCondition(button) {
     if (items.length > 1) {
         button.closest('.medical-condition-item').remove();
     } else {
-        alert('Minimal harus ada satu kondisi medis');
+        button.closest('.medical-condition-item').querySelector('input').value = '';
     }
 }
 </script>

@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
 
 class ClinicPatientController extends Controller
 {
@@ -89,12 +92,7 @@ class ClinicPatientController extends Controller
      */
     public function create()
     {
-        // Get available users that don't have a clinic patient linked
-        $availableUsers = User::whereDoesntHave('clinicPatient')->get();
-
-        return view('admin.clinic-patients.create', [
-            'availableUsers' => $availableUsers,
-        ]);
+        return view('admin.clinic-patients.create');
     }
 
     /**
@@ -129,53 +127,75 @@ class ClinicPatientController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'user_id' => ['nullable', 'exists:users,id', Rule::unique('clinic_patients', 'user_id')->whereNotNull('user_id')],
+        $rules = [
             'name' => 'required|string|max:255',
             'identity_number' => ['nullable', 'string', 'max:255', Rule::unique('clinic_patients', 'identity_number')->whereNotNull('identity_number')],
             'category' => 'required|in:mahasiswa,pegawai,umum',
             'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
+            'email' => 'required|email|max:255|unique:clinic_patients,email',
             'status' => 'required|in:aktif,tidak_aktif',
             'medical_conditions' => 'nullable|array',
             'medical_conditions.*' => 'string|max:255',
             'notes' => 'nullable|string',
-        ]);
+            'create_user_account' => 'nullable|boolean',
+        ];
+
+        // Jika create_user_account dicentang, password wajib diisi
+        if ($request->filled('create_user_account')) {
+            $rules['prodi'] = 'nullable|string|max:255';
+            $rules['password'] = 'required|min:8|confirmed';
+        }
+
+        $validated = $request->validate($rules);
 
         // Separate clinic patient data from user data
         $clinicPatientData = $validated;
         $medicalConditions = $validated['medical_conditions'] ?? null;
         $notes = $validated['notes'] ?? null;
+        $createUserAccount = $validated['create_user_account'] ?? false;
+        $password = $validated['password'] ?? null;
+        $prodi = $validated['prodi'] ?? null;
         
         unset($clinicPatientData['medical_conditions']);
         unset($clinicPatientData['notes']);
+        unset($clinicPatientData['create_user_account']);
+        unset($clinicPatientData['password']);
+        unset($clinicPatientData['prodi']);
+
+        // Jika create_user_account, buat User terlebih dahulu
+        if ($createUserAccount) {
+            // role_user = category (mahasiswa atau pegawai)
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'role_user' => $validated['category'],
+                'nim' => $validated['identity_number'] ?? null,
+                'prodi' => $prodi,
+                'password' => Hash::make($password),
+                'timezone' => 'Asia/Jakarta',
+            ]);
+
+            // Link user ke clinic patient
+            $clinicPatientData['user_id'] = $user->id;
+
+            // Update medical conditions dan notes di User
+            if ($medicalConditions) {
+                $user->update([
+                    'medical_conditions' => array_filter($medicalConditions, function($val) {
+                        return !empty(trim($val));
+                    }),
+                ]);
+            }
+            if ($notes) {
+                $user->update(['notes' => $notes]);
+            }
+        }
 
         // Create clinic patient
         $patient = ClinicPatient::create($clinicPatientData);
 
-        // If user is selected, update their medical conditions
-        if ($validated['user_id']) {
-            $user = User::find($validated['user_id']);
-            $userData = [];
-            
-            if ($medicalConditions) {
-                // Filter out empty values
-                $userData['medical_conditions'] = array_filter($medicalConditions, function($val) {
-                    return !empty(trim($val));
-                });
-            }
-            
-            if ($notes) {
-                $userData['notes'] = $notes;
-            }
-            
-            if (!empty($userData)) {
-                $user->update($userData);
-            }
-        }
-
         return redirect()->route('admin.clinic-patients.index')
-                        ->with('success', 'Pasien berhasil ditambahkan');
+                        ->with('success', 'Pasien berhasil ditambahkan' . ($createUserAccount ? ' dan akun aplikasi berhasil dibuat' : ''));
     }
 
     /**
@@ -202,9 +222,30 @@ class ClinicPatientController extends Controller
                   ->orWhere('id', $clinicPatient->user_id);
         })->get();
 
+        // Prepare medical conditions and notes data
+        // If user is linked, get from user; otherwise get from notes field
+        $medicalConditions = [];
+        if ($clinicPatient->user && $clinicPatient->user->medical_conditions) {
+            $medicalConditions = $clinicPatient->user->medical_conditions;
+        }
+
+        $notes = '';
+        if ($clinicPatient->user && $clinicPatient->user->notes) {
+            $notes = $clinicPatient->user->notes;
+        }
+
+        // Prepare prodi data
+        $prodi = '';
+        if ($clinicPatient->user && $clinicPatient->user->prodi) {
+            $prodi = $clinicPatient->user->prodi;
+        }
+
         return view('admin.clinic-patients.edit', [
             'patient' => $clinicPatient,
             'availableUsers' => $availableUsers,
+            'medicalConditions' => $medicalConditions,
+            'notes' => $notes,
+            'prodi' => $prodi,
         ]);
     }
 
@@ -237,18 +278,34 @@ class ClinicPatientController extends Controller
         // Update clinic patient
         $clinicPatient->update($clinicPatientData);
 
-        // If user is selected, update their medical conditions
-        if ($validated['user_id']) {
-            $user = User::find($validated['user_id']);
+        // If user is selected, sync data with user account
+        if ($clinicPatient->user_id) {
+            $user = User::find($clinicPatient->user_id);
             $userData = [];
             
+            // Sync NIM if provided
+            if ($validated['identity_number'] && $user->nim !== $validated['identity_number']) {
+                $userData['nim'] = $validated['identity_number'];
+            }
+            
+            // Sync email if changed
+            if ($validated['email'] && $user->email !== $validated['email']) {
+                $userData['email'] = $validated['email'];
+            }
+            
+            // Sync phone if provided
+            if ($validated['phone']) {
+                $userData['phone'] = $validated['phone'];
+            }
+            
+            // Sync medical conditions
             if ($medicalConditions) {
-                // Filter out empty values
                 $userData['medical_conditions'] = array_filter($medicalConditions, function($val) {
                     return !empty(trim($val));
                 });
             }
             
+            // Sync notes
             if ($notes) {
                 $userData['notes'] = $notes;
             }
@@ -467,9 +524,57 @@ class ClinicPatientController extends Controller
      */
     public function destroy(ClinicPatient $clinicPatient)
     {
+        // Load user relation untuk menghapus data terkait
+        $clinicPatient->load('user');
+        $userId = $clinicPatient->user_id;
+        $userEmail = $clinicPatient->user?->email ?? null;
+        
+        // Hapus clinic patient terlebih dahulu (untuk release foreign key constraint)
         $clinicPatient->delete();
+        Log::info("ClinicPatient deleted: {$clinicPatient->id}");
+        
+        // Hapus semua data user jika ada user linked
+        if ($userId) {
+            try {
+                $user = User::findOrFail($userId);
+                Log::info("Found user {$userId} with email {$user->email}");
+                
+                try {
+                    // Hapus semua medication schedules user
+                    $user->medicationSchedules()->delete();
+                    Log::info("Medication schedules deleted for user {$userId}");
+                } catch (\Exception $e) {
+                    Log::warning("Error deleting medication schedules for user {$userId}: {$e->getMessage()}");
+                }
+                
+                try {
+                    // Hapus semua medication logs user
+                    $user->medicationLogs()->delete();
+                    Log::info("Medication logs deleted for user {$userId}");
+                } catch (\Exception $e) {
+                    Log::warning("Error deleting medication logs for user {$userId}: {$e->getMessage()}");
+                }
+                
+                try {
+                    // Hapus semua notifications user (jika table ada)
+                    if (Schema::hasTable('notifications')) {
+                        $user->notifications()->delete();
+                        Log::info("Notifications deleted for user {$userId}");
+                    }
+                } catch (\Exception $e) {
+                    Log::warning("Error deleting notifications for user {$userId}: {$e->getMessage()}");
+                }
+                
+                // Hapus user account dengan forceDelete
+                $deleted = $user->forceDelete();
+                Log::info("User {$userId} deleted with forceDelete. Result: {$deleted}");
+            } catch (\Exception $e) {
+                Log::error("Error deleting user {$userId}: {$e->getMessage()} | " . get_class($e));
+                // Continue anyway
+            }
+        }
 
         return redirect()->route('admin.clinic-patients.index')
-                        ->with('success', 'Pasien berhasil dihapus');
+                        ->with('success', 'Pasien dan semua data terkait berhasil dihapus. Pasien dapat mendaftar ulang.');
     }
 }

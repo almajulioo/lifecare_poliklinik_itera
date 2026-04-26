@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\ClinicPatient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -82,9 +83,20 @@ class PenggunaController extends Controller
         // Hash the password before saving
         $validated['password'] = Hash::make($validated['password']);
 
-        User::create($validated);
+        // Create user
+        $user = User::create($validated);
 
-        return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil ditambahkan');
+        // Otomatis buat ClinicPatient entry untuk user baru
+        ClinicPatient::create([
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'identity_number' => $user->nim ?? null,
+            'category' => $user->role_user, // mahasiswa atau pegawai
+            'email' => $user->email,
+            'status' => 'aktif',
+        ]);
+
+        return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil ditambahkan dan otomatis terdaftar di ClinicPatient');
     }
 
     /**
@@ -119,6 +131,16 @@ class PenggunaController extends Controller
 
         $user->update($validated);
 
+        // Update ClinicPatient yang terkait untuk konsistensi data
+        if ($user->clinicPatient) {
+            $user->clinicPatient->update([
+                'name' => $validated['name'],
+                'identity_number' => $validated['nim'] ?? null,
+                'category' => $validated['role_user'],
+                'email' => $user->email,
+            ]);
+        }
+
         return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil diperbarui');
     }
 
@@ -127,8 +149,13 @@ class PenggunaController extends Controller
      */
     public function destroy(User $user)
     {
+        // Hapus ClinicPatient yang terkait jika ada
+        if ($user->clinicPatient) {
+            $user->clinicPatient->delete();
+        }
+
         $user->delete();
 
-        return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil dihapus');
+        return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna dan data pasien berhasil dihapus');
     }
 }

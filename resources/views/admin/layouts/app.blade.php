@@ -41,16 +41,6 @@
                         <span>Dashboard</span>
                     </a>
 
-                    <!-- Pengguna -->
-                    <a href="{{ route('admin.pengguna.index') }}" 
-                       class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors
-                              {{ request()->routeIs('admin.pengguna.*') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700 hover:bg-gray-50' }}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM6 20h12a6 6 0 00-6-6 6 6 0 00-6 6z"></path>
-                        </svg>
-                        <span>Pengguna</span>
-                    </a>
-
                     <!-- Riwayat Pengingat -->
                     <a href="{{ route('admin.riwayat.index') }}" 
                        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors

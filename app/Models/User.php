@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\MedicationSchedule;
 use App\Models\MedicationLog;
+use App\Models\ClinicPatient;
 use App\Notifications\ResetPassword;
 
 class User extends Authenticatable
@@ -66,5 +67,25 @@ class User extends Authenticatable
     public function clinicPatient()
     {
         return $this->hasOne(ClinicPatient::class);
+    }
+
+    /**
+     * Bootstrap the model and its traits.
+     * 
+     * Otomatis membuat ClinicPatient entry saat User baru dibuat
+     */
+    protected static function booted(): void
+    {
+        static::created(function (User $user) {
+            // Buat ClinicPatient otomatis saat User dibuat
+            ClinicPatient::create([
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'identity_number' => $user->nim ?? null,
+                'category' => $user->role_user, // mahasiswa atau pegawai
+                'email' => $user->email,
+                'status' => 'aktif',
+            ]);
+        });
     }
 }

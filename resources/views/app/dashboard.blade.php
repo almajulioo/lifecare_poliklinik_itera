@@ -166,6 +166,134 @@
 <x-mobile-bottom-nav active="dashboard" />
 
 <script>
+// Auto-check untuk due medications setiap 30 detik
+let lastMedicationCount = {{ $dueMedications->count() }};
+let checkInterval;
+
+function checkDueMedications() {
+    fetch('/api/due-medications', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.count !== lastMedicationCount) {
+            // Ada perubahan, reload halaman untuk update
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error checking due medications:', error);
+    });
+}
+
+// Start auto-checking saat page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Cek setiap 30 detik
+    checkInterval = setInterval(checkDueMedications, 30000);
+    
+    // Juga cek saat page menjadi visible (keluar dari background)
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            console.log('Dashboard is visible, checking for due medications...');
+            checkDueMedications();
+        }
+    });
+});
+
+// Handle FCM messages when app is in foreground
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    // Register service worker untuk background notifications
+    navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then(registration => {
+            console.log('✅ Service Worker registered:', registration);
+        })
+        .catch(error => {
+            console.warn('Service Worker registration failed:', error);
+        });
+
+    // Import Firebase messaging scripts
+    const script1 = document.createElement('script');
+    script1.src = 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+    
+    const script2 = document.createElement('script');
+    script2.src = 'https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging.js';
+    script2.onload = function() {
+        initializeFCMHandling();
+    };
+    
+    document.head.appendChild(script1);
+    document.head.appendChild(script2);
+}
+
+function initializeFCMHandling() {
+    try {
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4l8cv22eHJrBX4ezcJGVl0CSzgvoJnvA",
+            authDomain: "lifecare-poliklinik-itera.firebaseapp.com",
+            projectId: "lifecare-poliklinik-itera",
+            storageBucket: "lifecare-poliklinik-itera.firebasestorage.app",
+            messagingSenderId: "885870142104",
+            appId: "1:885870142104:web:5e94de5f1f00672828a6ed",
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
+
+        // Handle foreground messages
+        messaging.onMessage((payload) => {
+            console.log('📬 FCM message received in foreground:', payload);
+            
+            const title = payload.notification?.title || payload.data?.title || 'Notification';
+            const options = {
+                body: payload.notification?.body || payload.data?.body || '',
+                icon: '/favicon.ico',
+                badge: '/favicon.ico',
+                tag: payload.data?.tag || 'medication-reminder',
+                requireInteraction: true,
+                data: payload.data || {}
+            };
+
+            // Show notification
+            if (Notification.permission === 'granted') {
+                const notification = new Notification(title, options);
+                
+                // Handle notification click
+                notification.onclick = () => {
+                    window.focus();
+                    notification.close();
+                    // Reload dashboard to show updated reminders
+                    location.reload();
+                };
+            }
+
+            // Also reload page to show the reminder
+            if (payload.data?.action === 'medication_reminder') {
+                console.log('Reloading dashboard to show medication reminder...');
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            }
+        });
+
+        console.log('✅ FCM foreground message handler initialized');
+    } catch (error) {
+        console.warn('FCM initialization warning:', error);
+        // Non-critical - app still works without foreground FCM handling
+    }
+}
+
+// Stop checking saat page unload
+window.addEventListener('beforeunload', function() {
+    if (checkInterval) {
+        clearInterval(checkInterval);
+    }
+});
+
 function snoozeReminder(btn, medicationScheduleId) {
     // Disable button to prevent multiple clicks
     btn.disabled = true;

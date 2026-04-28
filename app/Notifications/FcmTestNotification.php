@@ -2,11 +2,12 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Channels\KreaitFcmChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use NotificationChannels\Fcm\FcmChannel;
-use NotificationChannels\Fcm\FcmMessage;
-use NotificationChannels\Fcm\Resources\Notification as FcmNotification;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
+use Illuminate\Support\Facades\Log;
 
 class FcmTestNotification extends Notification
 {
@@ -31,52 +32,58 @@ class FcmTestNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return [FcmChannel::class];
+        return [KreaitFcmChannel::class];
     }
 
     /**
-     * Get the FCM representation of the notification.
+     * Send via Kreait SDK directly
      */
-    public function toFcm($notifiable): FcmMessage
+    public function sendViaKreait($notifiable)
     {
-        return (new FcmMessage(notification: new FcmNotification(
-                title: $this->title,
-                body: $this->body
-            )))
-            ->data([
+        try {
+            $factory = new \Kreait\Firebase\Factory();
+            $factory = $factory->withServiceAccount(storage_path('app/firebase_credentials.json'));
+            $messaging = $factory->createMessaging();
+
+            $notification = \Kreait\Firebase\Messaging\Notification::create(
+                $this->title,
+                $this->body
+            );
+
+            $message = \Kreait\Firebase\Messaging\CloudMessage::new()
+                ->withNotification($notification)
+                ->withData([
+                    'title' => $this->title,
+                    'body' => $this->body,
+                    'route' => '/app/dashboard',
+                    'status' => 'done',
+                ]);
+
+            // Get FCM token from notifiable
+            $token = $notifiable->fcm_token ?? null;
+            if (!$token) {
+                Log::warning('No FCM token for user', ['user_id' => $notifiable->id ?? 'unknown']);
+                return false;
+            }
+
+            $message = $message->withToken($token);
+            $messaging->send($message);
+            
+            Log::info('FCM test notification sent via Kreait', [
+                'user_id' => $notifiable->id ?? 'unknown',
                 'title' => $this->title,
-                'body' => $this->body,
-                'route' => '/app/dashboard',
-                'status' => 'done',
-            ])
-            ->custom([
-                'android' => [
-                    'notification' => [
-                        'color' => '#0A0A0A',
-                        'sound' => 'default',
-                    ],
-                ],
-                'apns' => [
-                    'payload' => [
-                        'aps' => [
-                            'sound' => 'default'
-                        ],
-                    ],
-                ],
-                'webpush' => [
-                    'headers' => [
-                        'Urgency' => 'high',
-                    ],
-                    'notification' => [
-                        'title' => $this->title,
-                        'body' => $this->body,
-                        'icon' => '/favicon.ico',
-                    ],
-                    'fcm_options' => [
-                        'link' => url('/app/dashboard'),
-                    ],
-                ],
             ]);
+
+            return true;
+
+        } catch (\Exception $e) {
+            Log::error('Failed to send FCM test notification via Kreait', [
+                'user_id' => $notifiable->id ?? 'unknown',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return false;
+        }
     }
 
     /**

@@ -28,6 +28,20 @@ class FcmTestController extends Controller
         try {
             $token = trim($request->fcm_token);
 
+            // Detailed debug logging
+            Log::info('FCM test notification attempt', [
+                'user_id' => auth()->id(),
+                'token_length' => strlen($token),
+                'token_first_20' => substr($token, 0, 20),
+                'title' => $request->title,
+                'body_length' => strlen($request->body),
+            ]);
+
+            // Check if token is valid
+            if (strlen($token) < 80) {
+                throw new \Exception("FCM token appears invalid (too short: " . strlen($token) . " chars)");
+            }
+
             Notification::route('fcm', $token)
                 ->notify(new FcmTestNotification($request->title, $request->body));
 
@@ -38,12 +52,34 @@ class FcmTestController extends Controller
             ]);
 
             return back()->with('success', 'Notification sent successfully!');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            $errorMessage = $e->getMessage();
+            $errorCode = $e->getCode();
+            $errorFile = $e->getFile();
+            $errorLine = $e->getLine();
+
             Log::error('FCM test notification failed', [
                 'user_id' => auth()->id(),
-                'message' => $e->getMessage(),
+                'message' => $errorMessage,
+                'code' => $errorCode,
+                'file' => $errorFile,
+                'line' => $errorLine,
+                'exception' => get_class($e),
             ]);
-            return back()->with('error', 'Error sending notification: ' . $e->getMessage());
+
+            // More user-friendly error message
+            $displayMessage = 'Error sending notification: ' . $errorMessage;
+            
+            // Check for common issues
+            if (strpos($errorMessage, 'Unauthenticated') !== false || strpos($errorMessage, 'permission') !== false) {
+                $displayMessage = 'Firebase authentication failed. Check your credentials file.';
+            } elseif (strpos($errorMessage, 'invalid-argument') !== false) {
+                $displayMessage = 'Invalid FCM token. The token may have expired.';
+            } elseif (strpos($errorMessage, 'NOT_FOUND') !== false) {
+                $displayMessage = 'FCM instance not found. Check your Firebase configuration.';
+            }
+
+            return back()->with('error', $displayMessage);
         }
     }
 

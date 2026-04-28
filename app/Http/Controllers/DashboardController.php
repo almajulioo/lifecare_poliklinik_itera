@@ -141,4 +141,64 @@ class DashboardController extends Controller
             'schedulesByDate' => $schedulesByDate,
         ]);
     }
+
+    // API endpoint untuk fetch due medications secara real-time (untuk auto-checking di dashboard)
+    public function apiDueMedications(Request $request)
+    {
+        $user = $request->user();
+        $now = now();
+
+        // Ambil jadwal obat hari ini yang aktif
+        $todaySchedules = MedicationSchedule::with(['medicine', 'logs' => function($q) {
+                $q->where(function($query) {
+                    $query->whereDate('updated_at', today())
+                          ->orWhereDate('taken_at', today());
+                });
+            }])
+            ->where('user_id', $user->id)
+            ->where('is_active', true)
+            ->whereDate('start_date', '<=', today())
+            ->where(function($q){
+                $q->whereNull('end_date')->orWhereDate('end_date', '>=', today());
+            })
+            ->orderBy('time')
+            ->get();
+
+        // Filter obat yang sudah melewati waktu minumnya
+        $dueMedications = $todaySchedules->filter(function($schedule) use ($now) {
+            [$hour, $minute] = explode(':', $schedule->time);
+            $scheduledTime = Carbon::createFromTime($hour, $minute);
+            return $now->gt($scheduledTime);
+        })
+        ->filter(function($schedule) {
+            // Filter hanya obat yang belum diminum
+            $log = $schedule->logs->first();
+            return !$log || $log->status !== 'taken';
+        })
+        ->values();
+
+        // Format response dengan informasi yang dibutuhkan frontend
+        $medications = $dueMedications->map(function($schedule) {
+            $timeStr = $schedule->time;
+            if (str_starts_with($timeStr, '[')) {
+                $times = json_decode($timeStr, true);
+                $timeStr = is_array($times) ? $times[0] : '00:00';
+            }
+            $formattedTime = Carbon::createFromFormat('H:i', $timeStr)->format('H:i');
+
+            return [
+                'id' => $schedule->id,
+                'medicine_name' => $schedule->medicine->name,
+                'dose' => $schedule->medicine->dose,
+                'unit' => $schedule->medicine->unit,
+                'time' => $formattedTime,
+            ];
+        })->toArray();
+
+        return response()->json([
+            'success' => true,
+            'count' => count($medications),
+            'medications' => $medications,
+        ]);
+    }
 }

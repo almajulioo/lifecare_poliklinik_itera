@@ -71,6 +71,31 @@
             '--safe-left': 'env(safe-area-inset-left)',
         });
     </script>
-    @endauth
+
+    <!-- OneSignal Web SDK -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+                appId: "{{ config('services.onesignal.app_id') }}",
+                safari_web_id: "web.onesignal.auto.50d89199-747f-4818-96ca-50d4208129fc",
+                notifyButton: {
+                    enable: true,
+                },
+                allowLocalhostAsSecureOrigin: true,
+                serviceWorkerParam: { scope: "/" },
+                serviceWorkerPath: "OneSignalSDKWorker.js"
+            });
+            
+            @auth
+                // Login user with email as external ID so backend can target them
+                OneSignal.login("{{ auth()->user()->email }}");
+
+                // Force Slidedown prompt
+                OneSignal.Slidedown.promptPush();
+            @endauth
+        });
+    </script>
 </body>
 </html>

@@ -53,4 +53,3 @@ import './offline-queue.js';
 import './offline-history.js';
 import './notification-scheduler.js';
 import './medication-modal.js';
-import './fcm-foreground-handler.js';

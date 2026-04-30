@@ -8,9 +8,7 @@ use App\Models\MedicationSchedule;
 use App\Models\NotificationLog;
 use App\Models\MedicationLog;
 use App\Models\User;
-use App\Notifications\MedicationReminderNotification;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Log;
 
 class NotificationController extends Controller
@@ -18,78 +16,7 @@ class NotificationController extends Controller
     // Waktu untuk reminder kedua (30 menit setelah jadwal)
     const SECOND_REMINDER_MINUTES = 30;
     
-    /**
-     * Helper method untuk kirim notifikasi FCM
-     * Cek preferensi user dan DND sebelum mengirim
-     */
-    protected function sendFcmMedicationReminder(User $user, MedicationSchedule $schedule, string $reminderType = 'first'): bool
-    {
-        // Cek apakah user punya FCM token
-        if (!$user->fcm_token) {
-            Log::info('No FCM token for user ' . $user->id);
-            return false;
-        }
 
-        // Ambil preferensi notifikasi user
-        $prefs = json_decode($user->notification_preferences ?? '{}', true);
-        $enabled = $prefs['enabled'] ?? true;
-        
-        if (!$enabled) {
-            return false;
-        }
-
-        // Cek DND (Do Not Disturb)
-        $dndStart = $prefs['dnd_start'] ?? '22:00';
-        $dndEnd = $prefs['dnd_end'] ?? '08:00';
-        
-        $now = now();
-        $currentTime = $now->format('H:i');
-        
-        $isDnd = false;
-        if ($dndStart > $dndEnd) {
-            // Range overnight (e.g., 22:00 - 08:00)
-            $isDnd = $currentTime >= $dndStart || $currentTime < $dndEnd;
-        } else {
-            // Range same-day
-            $isDnd = $currentTime >= $dndStart && $currentTime < $dndEnd;
-        }
-        
-        if ($isDnd) {
-            Log::info('DND active for user ' . $user->id);
-            return false;
-        }
-
-        // Kirim FCM notification
-        try {
-            $medicineDose = $schedule->medicine->dose . ' ' . ($schedule->medicine->unit ?? '');
-            
-            Notification::send($user, new MedicationReminderNotification(
-                $schedule->medicine->name,
-                $medicineDose,
-                $schedule->time,
-                $schedule->id,
-                $reminderType
-            ));
-
-            Log::info('FCM medication reminder sent', [
-                'user_id' => $user->id,
-                'medication_schedule_id' => $schedule->id,
-                'reminder_type' => $reminderType,
-            ]);
-
-            return true;
-        } catch (\Exception $e) {
-            Log::error('Failed to send FCM medication reminder', [
-                'user_id' => $user->id,
-                'medication_schedule_id' => $schedule->id,
-                'error' => $e->getMessage(),
-            ]);
-            
-            return false;
-        }
-    }
-    
-    
     // Ambil waktu notifikasi hari ini dan besok (jadwal yang perlu notifikasi)
     public function getNotificationTimes(Request $request)
     {
@@ -181,7 +108,7 @@ class NotificationController extends Controller
         $validated = $request->validate([
             'medication_schedule_id' => 'required|exists:medication_schedules,id',
             'scheduled_time' => 'required|date',
-            'notification_type' => 'required|in:browser,sound,both,fcm',
+            'notification_type' => 'required|in:browser,sound,both',
         ]);
 
         $user = $request->user();
@@ -387,15 +314,7 @@ class NotificationController extends Controller
         )
         ->orderBy('notification_logs.scheduled_time')
         ->get()
-        ->map(function($item) use ($user) {
-            // Kirim FCM notification untuk second reminder jika user punya FCM token
-            if ($user->fcm_token) {
-                $schedule = MedicationSchedule::with('medicine')->find($item->schedule_id);
-                if ($schedule) {
-                    $this->sendFcmMedicationReminder($user, $schedule, 'second');
-                }
-            }
-
+        ->map(function($item) {
             return [
                 'notification_log_id' => $item->id,
                 'medication_schedule_id' => $item->medication_schedule_id,
@@ -424,7 +343,7 @@ class NotificationController extends Controller
         // Validasi input
         $validated = $request->validate([
             'notification_log_id' => 'required|exists:notification_logs,id',
-            'notification_type' => 'required|in:browser,sound,both,fcm',
+            'notification_type' => 'required|in:browser,sound,both',
         ]);
 
         $user = $request->user();
@@ -529,29 +448,6 @@ class NotificationController extends Controller
             $scheduledTime = Carbon::createFromTime($hour, $minute);
             
             $log = $schedule->logs->first();
-
-            // Cek apakah sudah pernah send FCM untuk jadwal ini hari ini
-            $hasNotificationLog = NotificationLog::where('user_id', $user->id)
-                ->where('medication_schedule_id', $schedule->id)
-                ->whereDate('scheduled_time', today())
-                ->exists();
-
-            // Kirim FCM notification jika belum pernah send dan user punya FCM token
-            if (!$hasNotificationLog && $user->fcm_token) {
-                $this->sendFcmMedicationReminder($user, $schedule, 'first');
-                
-                // Catat bahwa sudah kirim notifikasi
-                NotificationLog::create([
-                    'user_id' => $user->id,
-                    'medication_schedule_id' => $schedule->id,
-                    'scheduled_time' => $scheduledTime->toDateTimeString(),
-                    'sent_at' => now(),
-                    'status' => 'sent',
-                    'notification_type' => 'fcm',
-                    'reminder_number' => 1,
-                    'second_reminder_at' => $scheduledTime->copy()->addMinutes(self::SECOND_REMINDER_MINUTES),
-                ]);
-            }
             
             return [
                 'medication_schedule_id' => $schedule->id,

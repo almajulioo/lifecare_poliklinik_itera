@@ -24,7 +24,6 @@ class User extends Authenticatable
         'gender',
         'phone',
         'password',
-        'fcm_token',
         'notification_preferences',
         'timezone',
         'medical_conditions',
@@ -71,16 +70,6 @@ class User extends Authenticatable
     public function clinicPatient()
     {
         return $this->hasOne(ClinicPatient::class);
-    }
-
-    /**
-     * Specifies the user's FCM token
-     *
-     * @return string|array
-     */
-    public function routeNotificationForFcm()
-    {
-        return $this->fcm_token;
     }
 
     /**

@@ -15,7 +15,6 @@ use App\Http\Controllers\Admin\RiwayatController;
 use App\Http\Controllers\Admin\ObatController;
 use App\Http\Controllers\Admin\RekamMedisController;
 use App\Http\Controllers\Admin\ClinicPatientController;
-use App\Http\Controllers\FcmTestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -233,57 +232,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/statistics/weekly-stats', [MedicationHistoryController::class, 'weeklyStats'])
             ->name('statistics.weekly-stats');
     });
-
-    /*
-    |--------------------------------------------------------------------------
-    | FCM TEST ROUTES
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/fcm-test', [FcmTestController::class, 'index'])->name('fcm.test.index');
-    Route::post('/fcm-test', [FcmTestController::class, 'sendNotification'])->name('fcm.test.send');
-    Route::post('/fcm-token', [FcmTestController::class, 'saveToken'])->name('fcm.test.save-token');
-    
-    /*
-    |--------------------------------------------------------------------------
-    | DEBUG FCM TEST ROUTE
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/fcm-debug', function () {
-        try {
-            $user = auth()->user();
-            if (!$user) {
-                return response()->json(['error' => 'User not authenticated'], 401);
-            }
-
-            if (!$user->fcm_token) {
-                return response()->json(['error' => 'No FCM token for user', 'user_id' => $user->id], 400);
-            }
-
-            // Test 1: Check Firebase credentials file
-            $credentialsPath = storage_path(config('firebase.projects.app.credentials'));
-            $credentialsExist = file_exists($credentialsPath);
-            
-            // Test 2: Try to send test notification
-            $testMessage = 'Test FCM message at ' . now()->toDateTimeString();
-            
-            return response()->json([
-                'user_id' => $user->id,
-                'fcm_token_exists' => !!$user->fcm_token,
-                'fcm_token_length' => strlen($user->fcm_token),
-                'credentials_file' => $credentialsPath,
-                'credentials_file_exists' => $credentialsExist,
-                'firebase_project' => config('firebase.default'),
-                'vite_vapid_key' => env('VITE_FIREBASE_VAPID_KEY') ? 'SET' : 'NOT_SET',
-                'message' => 'Ready to send FCM. Try sending test message now.'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ], 500);
-        }
-    })->name('fcm.debug');
 });
 
 /*

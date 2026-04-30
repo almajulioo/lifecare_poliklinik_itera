@@ -19,7 +19,6 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('fcm_token')->nullable();
             $table->json('notification_preferences')->nullable();
             $table->string('timezone')->default('Asia/Jakarta');
             $table->json('medical_conditions')->nullable();

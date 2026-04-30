@@ -72,30 +72,39 @@
         });
     </script>
 
-    <!-- OneSignal Web SDK -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        OneSignalDeferred.push(async function(OneSignal) {
-            await OneSignal.init({
-                appId: "{{ config('services.onesignal.app_id') }}",
-                safari_web_id: "web.onesignal.auto.50d89199-747f-4818-96ca-50d4208129fc",
-                notifyButton: {
-                    enable: true,
-                },
-                allowLocalhostAsSecureOrigin: true,
-                serviceWorkerParam: { scope: "/" },
-                serviceWorkerPath: "OneSignalSDKWorker.js"
+    @auth
+        <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+        <script>
+            window.OneSignalDeferred = window.OneSignalDeferred || [];
+            OneSignalDeferred.push(async function(OneSignal) {
+                console.log("OneSignal Initializing with AppID:", "{{ config('services.onesignal.app_id') }}");
+                
+                try {
+                    await OneSignal.init({
+                        appId: "{{ config('services.onesignal.app_id') }}",
+                        safari_web_id: "web.onesignal.auto.50d89199-747f-4818-96ca-50d4208129fc",
+                        notifyButton: {
+                            enable: true,
+                        },
+                        allowLocalhostAsSecureOrigin: true,
+                        serviceWorkerParam: { scope: "/" },
+                        serviceWorkerPath: "OneSignalSDKWorker.js" // Gunakan path absolut
+                    });
+                    
+                    @auth
+                        // Login user with external ID so backend can target them
+                        console.log("OneSignal logging in user:", "{{ auth()->user()->email }}");
+                        OneSignal.login("{{ auth()->user()->email }}");
+                    @endauth
+                    
+                    // Force Slidedown prompt
+                    OneSignal.Slidedown.promptPush();
+                    
+                } catch (e) {
+                    console.error("OneSignal Init Error:", e);
+                }
             });
-            
-            @auth
-                // Login user with email as external ID so backend can target them
-                OneSignal.login("{{ auth()->user()->email }}");
-
-                // Force Slidedown prompt
-                OneSignal.Slidedown.promptPush();
-            @endauth
-        });
-    </script>
+        </script>
+    @endauth
 </body>
 </html>

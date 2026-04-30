@@ -8,11 +8,46 @@ use App\Models\MedicationSchedule;
 use App\Models\NotificationLog;
 use App\Models\MedicationLog;
 use App\Models\User;
+use App\Notifications\MedicationReminderNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class NotificationController extends Controller
 {
+    /**
+     * Kirim notifikasi percobaan (Test Notification) via OneSignal.
+     */
+    public function sendTestNotification(Request $request)
+    {
+        $user = $request->user();
+
+        try {
+            Notification::send($user, new MedicationReminderNotification(
+                'Obat Percobaan',
+                '1 Tablet',
+                now()->format('H:i'),
+                0, // ID 0 untuk test
+                'confirmation' // Gunakan template konfirmasi agar terlihat seperti test sukses
+            ));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Notifikasi percobaan telah dikirim ke OneSignal.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Gagal mengirim notifikasi percobaan OneSignal', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim notifikasi: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     // Waktu untuk reminder kedua (30 menit setelah jadwal)
     const SECOND_REMINDER_MINUTES = 30;
     

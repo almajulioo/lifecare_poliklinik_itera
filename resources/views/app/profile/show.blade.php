@@ -64,20 +64,65 @@
             <h3 class="text-sm font-semibold text-slate-900">Pengaturan</h3>
             
             <a href="{{ route('app.settings') }}" class="block w-full bg-white rounded-lg p-4 border border-slate-200 text-center font-medium text-slate-900 hover:bg-slate-50 transition flex items-center justify-center gap-2">
-                <span></span>
+                <span>⚙️</span>
                 <span>Pengaturan Notifikasi</span>
             </a>
+
+            <button id="btn-test-notification" class="w-full bg-indigo-50 rounded-lg p-4 border border-indigo-200 text-center font-medium text-indigo-600 hover:bg-indigo-100 transition flex items-center justify-center gap-2">
+                <span>🔔</span>
+                <span>Kirim Test Notifikasi</span>
+            </button>
 
             <form method="POST" action="{{ route('logout') }}" class="block">
                 @csrf
                 <button type="submit" class="w-full bg-red-50 rounded-lg p-4 border border-red-200 text-center font-medium text-red-600 hover:bg-red-100 transition flex items-center justify-center gap-2">
-                    <span></span>
+                    <span>🚪</span>
                     <span>Logout</span>
                 </button>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const testBtn = document.getElementById('btn-test-notification');
+        if (testBtn) {
+            testBtn.addEventListener('click', function() {
+                const btn = this;
+                const originalContent = btn.innerHTML;
+                
+                btn.disabled = true;
+                btn.innerHTML = '<span class="animate-spin">🌀</span><span>Mengirim...</span>';
+
+                fetch("{{ route('api.test-notification') }}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Berhasil! Silakan cek HP/Browser Anda untuk notifikasi OneSignal.');
+                    } else {
+                        alert('Gagal: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat mengirim notifikasi. Pastikan Anda sudah login.');
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                });
+            });
+        }
+    });
+</script>
 
 <x-mobile-bottom-nav active="profile" />
 

@@ -24,6 +24,42 @@
         </div>
     @endif
 
+    <!-- OneSignal Notification Status -->
+    <div id="onesignal-status-banner" class="hidden p-4 bg-indigo-50 border border-indigo-200 rounded-xl shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+            </div>
+            <div class="flex-1">
+                <p class="text-sm font-bold text-indigo-900">Aktifkan Notifikasi Push</p>
+                <p class="text-xs text-indigo-700 mt-0.5">Dapatkan pengingat minum obat tepat waktu di HP Anda.</p>
+            </div>
+            <button onclick="OneSignal.Slidedown.promptPush()" class="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition">
+                Aktifkan
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            window.OneSignalDeferred = window.OneSignalDeferred || [];
+            OneSignalDeferred.push(function(OneSignal) {
+                // Sembunyikan banner jika user sudah subscribe
+                OneSignal.User.PushSubscription.addEventListener("change", function(event) {
+                    if (event.current.token) {
+                        document.getElementById('onesignal-status-banner').classList.add('hidden');
+                    }
+                });
+
+                if (!OneSignal.User.PushSubscription.token) {
+                    document.getElementById('onesignal-status-banner').classList.remove('hidden');
+                }
+            });
+        });
+    </script>
+
     <!-- Statistics -->
     <div class="grid grid-cols-3 gap-3">
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">

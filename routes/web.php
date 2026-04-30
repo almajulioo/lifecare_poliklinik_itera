@@ -170,6 +170,9 @@ Route::middleware(['auth'])->group(function () {
             ->name('sync-status');
 
         // NOTIFICATION ROUTES
+        Route::post('/test-notification', [NotificationController::class, 'sendTestNotification'])
+            ->name('test-notification');
+
         Route::post('/notification-times', [NotificationController::class, 'getNotificationTimes'])
             ->name('notification-times');
         

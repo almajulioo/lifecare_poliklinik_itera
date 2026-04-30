@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 
 use App\Models\MedicationSchedule;
 use App\Models\Medicine;
+use App\Notifications\MedicationReminderNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class UserMedicationScheduleController extends Controller
 {
@@ -81,7 +83,24 @@ class UserMedicationScheduleController extends Controller
                 MedicationSchedule::create($scheduleData);
             }
 
+            // Ambil info obat untuk notifikasi
             $medicine = Medicine::find($validated['medicine_id']);
+
+            // Kirim konfirmasi via Push Notification (OneSignal)
+            try {
+                $firstTime = $times[0] ?? '00:00';
+                $medicineDose = $medicine->dose . ' ' . ($medicine->unit ?? '');
+                
+                Notification::send($user, new MedicationReminderNotification(
+                    $medicine->name,
+                    $medicineDose,
+                    $firstTime,
+                    0, // ID 0 karena ini hanya konfirmasi
+                    'confirmation' // Tipe baru untuk konfirmasi
+                ));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('Gagal mengirim konfirmasi OneSignal: ' . $e->getMessage());
+            }
 
             return redirect()->route('app.schedules.index')
                 ->with('success', "Jadwal '{$medicine->name}' berhasil dibuat untuk " . count($times) . " waktu minum.");

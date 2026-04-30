@@ -73,6 +73,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Route notification untuk OneSignal.
+     * Menggunakan email sebagai external user ID untuk targeting.
+     */
+    public function routeNotificationForOneSignal()
+    {
+        return ['include_external_user_ids' => $this->email];
+    }
+
+    /**
      * Bootstrap the model and its traits.
      * 
      * Otomatis membuat ClinicPatient entry saat User baru dibuat

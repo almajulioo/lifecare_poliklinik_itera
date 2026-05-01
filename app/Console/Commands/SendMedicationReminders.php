@@ -15,17 +15,13 @@ class SendMedicationReminders extends Command
 {
     /**
      * The name and signature of the console command.
-     *
-     * @var string
      */
     protected $signature = 'medication:send-reminders {--check-interval=5}';
 
     /**
      * The description of the console command.
-     *
-     * @var string
      */
-    protected $description = 'Send FCM medication reminders to users when it\'s time to take their medicine';
+    protected $description = 'Send OneSignal medication reminders to users when it\'s time to take their medicine';
 
     /**
      * Waktu untuk reminder kedua (30 menit setelah jadwal)
@@ -38,28 +34,30 @@ class SendMedicationReminders extends Command
     public function handle()
     {
         $interval = (int) $this->option('check-interval');
-        
+
         $this->info("Starting medication reminders sender (checking every {$interval}min)...");
 
-        // Get all active users dengan fcm_token
-        // Include all user roles: mahasiswa, pasien, user, etc.
-        $users = User::whereNotNull('fcm_token')
-            ->whereIn('role_user', ['user', 'mahasiswa', 'pasien', 'patient'])
+        // Get all active users
+        $users = User::whereIn('role_user', ['user', 'mahasiswa', 'pegawai', 'pasien', 'patient'])
             ->get();
 
         if ($users->isEmpty()) {
-            $this->warn('No users with FCM tokens found');
+            $this->warn('No users found');
             return;
         }
 
-        $this->info("Found " . $users->count() . " users with FCM tokens");
+        $this->info("Found " . $users->count() . " users");
 
         $firstRemindersCount = 0;
         $secondRemindersCount = 0;
-        $now = now();
 
         foreach ($users as $user) {
             try {
+                // Cek preferences & DND
+                if (!$this->shouldSendNotification($user)) {
+                    continue;
+                }
+
                 // SEND FIRST REMINDERS
                 $firstReminders = $this->getFirstReminders($user);
                 foreach ($firstReminders as $medication) {
@@ -109,7 +107,6 @@ class SendMedicationReminders extends Command
     {
         $now = now();
 
-        // Ambil jadwal obat hari ini yang waktunya sudah melewati jam minum
         $schedules = MedicationSchedule::with(['medicine', 'logs' => function($q) {
                 $q->whereDate('updated_at', today())
                   ->orWhereDate('taken_at', today());
@@ -122,28 +119,13 @@ class SendMedicationReminders extends Command
             })
             ->get();
 
-        // Filter: waktunya sudah melewati dan belum diminum
-        return $schedules->filter(function($schedule) use ($now) {
-            [$hour, $minute] = explode(':', $schedule->time);
-            $scheduledTime = Carbon::createFromTime($hour, $minute);
-            
-            // Hanya jika waktu sekarang >= jadwal waktu
-            if ($now->lt($scheduledTime)) {
-                return false;
-            }
-
-            // Filter hanya obat yang belum diminum
-            $log = $schedule->logs->first();
-            return !$log || $log->status !== 'taken';
-        })
-        ->filter(function($schedule) use ($user) {
-            // Filter: belum kirim FCM hari ini
-            $exists = NotificationLog::where('user_id', $user->id)
+        // Filter: Semua jadwal aktif hari ini yang belum diproses
+        return $schedules->filter(function($schedule) use ($user) {
+            // Filter: belum kirim/jadwalkan notifikasi hari ini
+            return !NotificationLog::where('user_id', $user->id)
                 ->where('medication_schedule_id', $schedule->id)
                 ->whereDate('scheduled_time', today())
                 ->exists();
-            
-            return !$exists;
         });
     }
 
@@ -154,8 +136,7 @@ class SendMedicationReminders extends Command
     {
         $now = now();
 
-        // Query notification logs yang belum kirim second reminder
-        $secondReminders = NotificationLog::join('medication_logs', function($join) {
+        return NotificationLog::join('medication_logs', function($join) {
             $join->on('notification_logs.medication_schedule_id', '=', 'medication_logs.medication_schedule_id')
                 ->on('notification_logs.user_id', '=', 'medication_logs.user_id');
         })
@@ -188,48 +169,40 @@ class SendMedicationReminders extends Command
                 'time' => $item->time,
             ];
         });
-
-        return $secondReminders;
     }
 
     /**
-     * Kirim first reminder
+     * Kirim first reminder via OneSignal
      */
     private function sendFirstReminder(User $user, MedicationSchedule $schedule)
     {
-        // Check preferences & DND
-        if (!$this->shouldSendNotification($user)) {
-            Log::info('Notification skipped due to preferences/DND', ['user_id' => $user->id]);
-            return;
-        }
-
-        // Kirim FCM
-        $medicineDose = $schedule->medicine->dose . ' ' . ($schedule->medicine->unit ?? '');
+        [$hour, $minute] = explode(':', $schedule->time);
+        $scheduledTime = Carbon::createFromTime($hour, $minute);
         
+        $medicineDose = $schedule->medicine->dose . ' ' . ($schedule->medicine->unit ?? '');
+
         Notification::send($user, new MedicationReminderNotification(
             $schedule->medicine->name,
             $medicineDose,
             $schedule->time,
             $schedule->id,
-            'first'
+            'first',
+            $scheduledTime->toDateTimeString()
         ));
 
         // Catat di NotificationLog
-        [$hour, $minute] = explode(':', $schedule->time);
-        $scheduledTime = Carbon::createFromTime($hour, $minute);
-
         NotificationLog::create([
             'user_id' => $user->id,
             'medication_schedule_id' => $schedule->id,
             'scheduled_time' => $scheduledTime->toDateTimeString(),
             'sent_at' => now(),
             'status' => 'sent',
-            'notification_type' => 'fcm',
+            'notification_type' => 'onesignal',
             'reminder_number' => 1,
             'second_reminder_at' => $scheduledTime->copy()->addMinutes(self::SECOND_REMINDER_MINUTES),
         ]);
 
-        Log::info('First reminder sent', [
+        Log::info('First reminder sent via OneSignal', [
             'user_id' => $user->id,
             'medication_schedule_id' => $schedule->id,
             'medicine' => $schedule->medicine->name,
@@ -237,17 +210,10 @@ class SendMedicationReminders extends Command
     }
 
     /**
-     * Kirim second reminder
+     * Kirim second reminder via OneSignal
      */
     private function sendSecondReminder(User $user, array $item)
     {
-        // Check preferences & DND
-        if (!$this->shouldSendNotification($user)) {
-            Log::info('Second reminder skipped due to preferences/DND', ['user_id' => $user->id]);
-            return;
-        }
-
-        // Kirim FCM
         $schedule = MedicationSchedule::with('medicine')->find($item['schedule_id']);
         if (!$schedule) {
             Log::warning('Schedule not found', ['schedule_id' => $item['schedule_id']]);
@@ -259,7 +225,8 @@ class SendMedicationReminders extends Command
             $item['medicine_dose'],
             $item['time'],
             $item['medication_schedule_id'],
-            'second'
+            'second',
+            now()->toDateTimeString()
         ));
 
         // Update NotificationLog
@@ -267,11 +234,11 @@ class SendMedicationReminders extends Command
         if ($notifLog) {
             $notifLog->update([
                 'second_reminder_sent_at' => now(),
-                'notification_type' => 'fcm',
+                'notification_type' => 'onesignal',
             ]);
         }
 
-        Log::info('Second reminder sent', [
+        Log::info('Second reminder sent via OneSignal', [
             'user_id' => $user->id,
             'medication_schedule_id' => $item['medication_schedule_id'],
             'medicine' => $schedule->medicine->name,
@@ -283,10 +250,8 @@ class SendMedicationReminders extends Command
      */
     private function shouldSendNotification(User $user): bool
     {
-        // Ambil preferensi dari JSON
         $prefs = json_decode($user->notification_preferences ?? '{}', true);
 
-        // Default values
         $enabled = $prefs['enabled'] ?? true;
         $dndStart = $prefs['dnd_start'] ?? '22:00';
         $dndEnd = $prefs['dnd_end'] ?? '08:00';
@@ -295,17 +260,13 @@ class SendMedicationReminders extends Command
             return false;
         }
 
-        // Cek jendela do-not-disturb
         $now = now();
         $currentTime = $now->format('H:i');
 
-        // Handle DND overnight (e.g., 22:00 - 08:00)
         $isDnd = false;
         if ($dndStart > $dndEnd) {
-            // Range overnight
             $isDnd = $currentTime >= $dndStart || $currentTime < $dndEnd;
         } else {
-            // Range same-day
             $isDnd = $currentTime >= $dndStart && $currentTime < $dndEnd;
         }
 

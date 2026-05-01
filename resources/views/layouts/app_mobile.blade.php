@@ -71,160 +71,38 @@
             '--safe-left': 'env(safe-area-inset-left)',
         });
     </script>
+
     @auth
-        <script type="module">
-            import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-            import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging.js";
-
-            const firebaseConfig = {
-                apiKey: "AIzaSyC4l8cv22eHJrBX4ezcJGVl0CSzgvoJnvA",
-                authDomain: "lifecare-poliklinik-itera.firebaseapp.com",
-                projectId: "lifecare-poliklinik-itera",
-                storageBucket: "lifecare-poliklinik-itera.firebasestorage.app",
-                messagingSenderId: "885870142104",
-                appId: "1:885870142104:web:5e94de5f1f00672828a6ed",
-                measurementId: "G-R784D7MWEF"
-            };
-            const vapidKey = "{{ env('VITE_FIREBASE_VAPID_KEY', '') }}".trim();
-
-            const isValidWebPushVapidKey = (key) => {
-                return Boolean(key) && /^[A-Za-z0-9_-]{80,120}$/.test(key);
-            };
-
-            const canUseWebPush = () => {
-                const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-                return window.isSecureContext || isLocalhost;
-            };
-
-            const waitForServiceWorkerActivation = async (registration) => {
-                if (registration.active) {
-                    return registration;
-                }
-
-                const worker = registration.installing || registration.waiting;
-                if (!worker) {
-                    await navigator.serviceWorker.ready;
-                    return registration;
-                }
-
-                await new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => {
-                        reject(new Error("Timed out waiting for service worker activation."));
-                    }, 10000);
-
-                    worker.addEventListener("statechange", () => {
-                        if (worker.state === "activated") {
-                            clearTimeout(timeout);
-                            resolve();
-                        }
+        <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+        <script>
+            window.OneSignalDeferred = window.OneSignalDeferred || [];
+            OneSignalDeferred.push(async function(OneSignal) {
+                console.log("OneSignal Initializing with AppID:", "{{ config('services.onesignal.app_id') }}");
+                
+                try {
+                    await OneSignal.init({
+                        appId: "{{ config('services.onesignal.app_id') }}",
+                        safari_web_id: "web.onesignal.auto.50d89199-747f-4818-96ca-50d4208129fc",
+                        notifyButton: {
+                            enable: true,
+                        },
+                        allowLocalhostAsSecureOrigin: true,
+                        serviceWorkerParam: { scope: "/" },
+                        serviceWorkerPath: "OneSignalSDKWorker.js" // Gunakan path absolut
                     });
-                });
-
-                return registration;
-            };
-
-            const ensurePushReadyRegistration = async (registration, scope) => {
-                if (registration && registration.pushManager) {
-                    return registration;
+                    
+                    @auth
+                        // Login user with external ID so backend can target them
+                        console.log("OneSignal logging in user:", "{{ auth()->user()->email }}");
+                        OneSignal.login("{{ auth()->user()->email }}");
+                    @endauth
+                    
+                    // Force Slidedown prompt
+                    OneSignal.Slidedown.promptPush();
+                    
+                } catch (e) {
+                    console.error("OneSignal Init Error:", e);
                 }
-
-                // Retry from browser registry in case registration object is stale.
-                const resolved = await navigator.serviceWorker.getRegistration(scope);
-                if (resolved && resolved.pushManager) {
-                    return resolved;
-                }
-
-                throw new Error("FCM service worker is not ready (missing pushManager).");
-            };
-
-            const registerMessagingServiceWorker = async () => {
-                if (!("serviceWorker" in navigator)) {
-                    throw new Error("Service Worker is not supported by this browser.");
-                }
-
-                const messagingScope = "/firebase-cloud-messaging-push-scope";
-                const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
-                    scope: messagingScope,
-                });
-
-                const activeRegistration = await waitForServiceWorkerActivation(registration);
-                return ensurePushReadyRegistration(activeRegistration, messagingScope);
-            };
-
-            const saveTokenToServer = async (token) => {
-                const cachedToken = localStorage.getItem("lifecare_fcm_token");
-                if (cachedToken === token) {
-                    return;
-                }
-
-                const response = await fetch("{{ route('fcm.test.save-token') }}", {
-                    method: "POST",
-                    credentials: "same-origin",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                    },
-                    body: JSON.stringify({ fcm_token: token })
-                });
-
-                if (!response.ok) {
-                    throw new Error("Failed to save FCM token.");
-                }
-
-                localStorage.setItem("lifecare_fcm_token", token);
-            };
-
-            const initWebPush = async () => {
-                if (!canUseWebPush() || !isValidWebPushVapidKey(vapidKey)) {
-                    return;
-                }
-
-                const app = initializeApp(firebaseConfig);
-                const messaging = getMessaging(app);
-                const permission = await Notification.requestPermission();
-                if (permission !== "granted") {
-                    return;
-                }
-
-                const swRegistration = await registerMessagingServiceWorker();
-                const currentToken = await getToken(messaging, {
-                    vapidKey,
-                    serviceWorkerRegistration: swRegistration,
-                });
-
-                if (currentToken) {
-                    await saveTokenToServer(currentToken);
-                }
-
-                onMessage(messaging, (payload) => {
-                    const title = payload.notification?.title || payload.data?.title || "New Notification";
-                    const body = payload.notification?.body || payload.data?.body || "You have a new message.";
-                    const options = {
-                        body,
-                        icon: "/favicon.ico",
-                        tag: "lifecare-foreground-message",
-                    };
-
-                    if ("serviceWorker" in navigator) {
-                        navigator.serviceWorker.getRegistration("/firebase-cloud-messaging-push-scope")
-                            .then((registration) => {
-                                if (registration) {
-                                    return registration.showNotification(title, options);
-                                }
-
-                                return new Notification(title, options);
-                            })
-                            .catch(() => {
-                                new Notification(title, options);
-                            });
-                    } else {
-                        new Notification(title, options);
-                    }
-                });
-            };
-
-            initWebPush().catch((error) => {
-                console.warn("[Push] Initialization skipped/failed:", error);
             });
         </script>
     @endauth

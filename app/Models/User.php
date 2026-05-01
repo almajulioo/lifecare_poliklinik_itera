@@ -24,7 +24,6 @@ class User extends Authenticatable
         'gender',
         'phone',
         'password',
-        'fcm_token',
         'notification_preferences',
         'timezone',
         'medical_conditions',
@@ -74,13 +73,12 @@ class User extends Authenticatable
     }
 
     /**
-     * Specifies the user's FCM token
-     *
-     * @return string|array
+     * Route notification untuk OneSignal.
+     * Menggunakan email sebagai external user ID untuk targeting.
      */
-    public function routeNotificationForFcm()
+    public function routeNotificationForOneSignal()
     {
-        return $this->fcm_token;
+        return ['include_external_user_ids' => $this->email];
     }
 
     /**

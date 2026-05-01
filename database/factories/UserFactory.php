@@ -31,7 +31,6 @@ class UserFactory extends Factory
             'prodi' => $this->faker->word(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'fcm_token' => Str::random(152),
             'remember_token' => Str::random(10),
             'timezone' => 'Asia/Jakarta',
             'notification_preferences' => [

@@ -127,12 +127,19 @@ class ClinicPatientController extends Controller
      */
     public function store(Request $request)
     {
+        // Build unique rule for user_id - only check if not null to allow multiple null values
+        // Simplified: don't enforce unique since multiple clinic_patients can link to same user
+        $userIdRules = [];
+        if ($request->filled('user_id')) {
+            $userIdRules = ['exists:users,id'];
+        }
+        
         $rules = [
             'name' => 'required|string|max:255',
             'identity_number' => ['nullable', 'string', 'max:255', Rule::unique('clinic_patients', 'identity_number')->whereNotNull('identity_number')],
             'category' => 'required|in:mahasiswa,pegawai,umum',
             'phone' => 'nullable|string|max:20',
-            'email' => 'required|email|max:255|unique:clinic_patients,email',
+            'email' => 'nullable|email|max:255|unique:clinic_patients,email',
             'status' => 'required|in:aktif,tidak_aktif',
             'age' => 'nullable|integer|min:1|max:150',
             'gender' => 'nullable|in:laki-laki,perempuan',
@@ -140,6 +147,7 @@ class ClinicPatientController extends Controller
             'medical_conditions.*' => 'string|max:255',
             'notes' => 'nullable|string',
             'create_user_account' => 'nullable|boolean',
+            'user_id' => array_merge(['nullable'], $userIdRules),
         ];
 
         // Jika create_user_account dicentang, password wajib diisi
@@ -269,8 +277,16 @@ class ClinicPatientController extends Controller
      */
     public function update(Request $request, ClinicPatient $clinicPatient)
     {
+        // Build unique rule for user_id - only check if not null to allow multiple null values
+        // Simplified: don't enforce unique since multiple clinic_patients can link to same user
+        $userIdRules = [];
+        if ($request->filled('user_id')) {
+            // Only validate that user exists
+            $userIdRules = ['exists:users,id'];
+        }
+        
         $validated = $request->validate([
-            'user_id' => ['nullable', 'exists:users,id', Rule::unique('clinic_patients', 'user_id')->ignore($clinicPatient->id)->whereNotNull('user_id')],
+            'user_id' => array_merge(['nullable'], $userIdRules),
             'name' => 'required|string|max:255',
             'identity_number' => ['nullable', 'string', 'max:255', Rule::unique('clinic_patients', 'identity_number')->ignore($clinicPatient->id)->whereNotNull('identity_number')],
             'category' => 'required|in:mahasiswa,pegawai,umum',

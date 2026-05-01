@@ -84,9 +84,7 @@
                             </div>
                         @endif
                     </div>
-                            </div>
-                        @endif
-                    </div>
+                    
                     <button 
                         type="button"
                         onclick="addMedicalCondition()"

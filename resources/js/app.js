@@ -9,10 +9,13 @@ Alpine.start();
 /**
  * Service Worker Registration
  * Register service worker untuk offline support & notifications
+ * 
+ * ⚠️ IMPORTANT: Service worker must be in public/ folder and served directly
+ * Path is /service-worker.js (not built by Vite)
  */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/js/service-worker.js', {
+    navigator.serviceWorker.register('/service-worker.js', {
       scope: '/',
     })
       .then((registration) => {

@@ -9,11 +9,27 @@ class OfflineDetector {
     this.listeners = [];
     this.setupEventListeners();
     this.initUI();
+    console.log('[Offline Detector] Initialized. Currently', this.isOnline ? 'ONLINE' : 'OFFLINE');
   }
 
   setupEventListeners() {
     window.addEventListener('online', () => this.handleOnline());
     window.addEventListener('offline', () => this.handleOffline());
+    
+    // Also check connection periodically for reliability
+    setInterval(() => {
+      const actualStatus = navigator.onLine;
+      if (actualStatus !== this.isOnline) {
+        console.log('[Offline Detector] Status changed to:', actualStatus ? 'ONLINE' : 'OFFLINE');
+        this.isOnline = actualStatus;
+        this.updateUI();
+        if (actualStatus) {
+          this.handleOnline();
+        } else {
+          this.handleOffline();
+        }
+      }
+    }, 5000); // Check every 5 seconds
   }
 
   handleOnline() {
@@ -75,7 +91,9 @@ class OfflineDetector {
       }
     } else {
       if (warning) {
-        warning.remove();
+        warning.style.opacity = '0';
+        warning.style.transition = 'opacity 0.3s ease-out';
+        setTimeout(() => warning.remove(), 300);
       }
     }
   }

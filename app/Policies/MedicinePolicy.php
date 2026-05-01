@@ -17,12 +17,23 @@ class MedicinePolicy
     }
 
     /**
-     * Only ADMIN can create medicines
+     * Only ADMIN and Users can create medicines
+     * Admins create medicines with source_type ADMIN
+     * Users create medicines with source_type PATIENT (for themselves)
      */
     public function create($user): bool
     {
-        // Only ADMIN can create medicines
-        return $this->isAdmin($user);
+        // ADMIN can create medicines
+        if ($this->isAdmin($user)) {
+            return true;
+        }
+
+        // Users (Patients) can also create medicines for themselves
+        if ($user instanceof User) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

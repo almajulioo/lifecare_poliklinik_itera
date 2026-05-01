@@ -113,12 +113,14 @@ class RBACAuthorizationTest extends TestCase
     }
 
     /**
-     * Test: Only ADMIN can create medicines
+     * Test: Both ADMIN and PATIENT can create medicines
+     * Admins create medicines with source_type ADMIN
+     * Patients create medicines with source_type PATIENT
      */
     public function test_only_admin_can_create_medicine()
     {
         $this->assertTrue($this->admin->can('create', Medicine::class));
-        $this->assertFalse($this->patient1->can('create', Medicine::class));
+        $this->assertTrue($this->patient1->can('create', Medicine::class));
     }
 
     /**

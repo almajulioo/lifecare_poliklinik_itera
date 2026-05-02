@@ -5,11 +5,19 @@
 
 class OfflineDetector {
   constructor() {
-    this.isOnline = navigator.onLine;
-    this.listeners = [];
-    this.setupEventListeners();
-    this.initUI();
-    console.log('[Offline Detector] Initialized. Currently', this.isOnline ? 'ONLINE' : 'OFFLINE');
+    try {
+      this.isOnline = navigator.onLine;
+      this.listeners = [];
+      this.setupEventListeners();
+      
+      // Defensive check for initUI
+      if (typeof this.initUI === 'function') {
+        this.initUI();
+      }
+      console.log('[Offline Detector] Initialized. Currently', this.isOnline ? 'ONLINE' : 'OFFLINE');
+    } catch (err) {
+      console.error('[Offline Detector] Constructor error:', err);
+    }
   }
 
   setupEventListeners() {
@@ -30,6 +38,11 @@ class OfflineDetector {
         }
       }
     }, 5000); // Check every 5 seconds
+  }
+
+  initUI() {
+    // Initialize UI elements
+    this.updateUI();
   }
 
   handleOnline() {
@@ -56,75 +69,96 @@ class OfflineDetector {
   }
 
   updateUI() {
-    // Update indicator element if exists
-    const indicator = document.getElementById('offline-indicator');
-    if (indicator) {
-      if (this.isOnline) {
-        indicator.style.display = 'none';
-      } else {
-        indicator.style.display = 'block';
+    try {
+      // Update indicator element if exists
+      const indicator = document.getElementById('offline-indicator');
+      if (indicator) {
+        if (this.isOnline) {
+          indicator.style.display = 'none';
+        } else {
+          indicator.style.display = 'block';
+        }
       }
-    }
 
-    // Update body data attribute
-    document.body.dataset.offline = !this.isOnline;
-    
-    // Show/hide offline warning
-    this.updateOfflineWarning();
+      // Update body data attribute
+      document.body.dataset.offline = !this.isOnline;
+      
+      // Show/hide offline warning
+      this.updateOfflineWarning();
+    } catch (err) {
+      console.warn('[Offline Detector] Error updating UI:', err);
+    }
   }
 
   updateOfflineWarning() {
-    let warning = document.getElementById('offline-warning');
-    
-    if (!this.isOnline) {
-      if (!warning) {
-        warning = document.createElement('div');
-        warning.id = 'offline-warning';
-        warning.className = 'fixed top-0 left-0 right-0 bg-yellow-50 border-b border-yellow-200 text-yellow-700 p-3 text-sm z-50';
-        warning.innerHTML = `
-          <div class="flex items-center gap-2 max-w-4xl mx-auto">
-            <span class="text-lg">📡</span>
-            <span><strong>Offline Mode:</strong> Anda sedang offline. Data akan disinkronkan otomatis saat kembali online.</span>
-          </div>
-        `;
-        document.body.insertBefore(warning, document.body.firstChild);
+    try {
+      let warning = document.getElementById('offline-warning');
+      
+      if (!this.isOnline) {
+        if (!warning) {
+          warning = document.createElement('div');
+          warning.id = 'offline-warning';
+          warning.className = 'fixed top-0 left-0 right-0 bg-yellow-50 border-b border-yellow-200 text-yellow-700 p-3 text-sm z-50';
+          warning.innerHTML = `
+            <div class="flex items-center gap-2 max-w-4xl mx-auto">
+              <span class="text-lg">📡</span>
+              <span><strong>Offline Mode:</strong> Anda sedang offline. Data akan disinkronkan otomatis saat kembali online.</span>
+            </div>
+          `;
+          document.body.insertBefore(warning, document.body.firstChild);
+        }
+      } else {
+        if (warning) {
+          warning.style.opacity = '0';
+          warning.style.transition = 'opacity 0.3s ease-out';
+          setTimeout(() => warning.remove(), 300);
+        }
       }
-    } else {
-      if (warning) {
-        warning.style.opacity = '0';
-        warning.style.transition = 'opacity 0.3s ease-out';
-        setTimeout(() => warning.remove(), 300);
-      }
+    } catch (err) {
+      console.warn('[Offline Detector] Error updating offline warning:', err);
     }
-  }
-
-  subscribe(listener) {
-    this.listeners.push(listener);
-    return () => {
-      this.listeners = this.listeners.filter((l) => l !== listener);
-    };
   }
 
   notifyListeners(status) {
-    this.listeners.forEach((listener) => listener(status));
+    this.listeners.forEach((listener) => {
+      try {
+        listener(status);
+      } catch (err) {
+        console.warn('[Offline Detector] Error notifying listener:', err);
+      }
+    });
+  }
+
+  addListener(callback) {
+    if (typeof callback === 'function') {
+      this.listeners.push(callback);
+    }
+  }
+
+  removeListener(callback) {
+    this.listeners = this.listeners.filter((listener) => listener !== callback);
   }
 
   static getInstance() {
-    if (!window.__OfflineDetectorInstance) {
-      window.__OfflineDetectorInstance = new OfflineDetector();
+    try {
+      if (!window.__OfflineDetectorInstance) {
+        window.__OfflineDetectorInstance = new OfflineDetector();
+      }
+      return window.__OfflineDetectorInstance;
+    } catch (err) {
+      console.error('[Offline Detector] Error in getInstance:', err);
+      return null;
     }
-    return window.__OfflineDetectorInstance;
   }
 }
 
-// Initialize when DOM ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    OfflineDetector.getInstance();
-  });
-} else {
+// Initialize when ready with error handling
+try {
   OfflineDetector.getInstance();
+} catch (err) {
+  console.error('[Offline Detector] Error during initialization:', err);
 }
 
-// Export for use in other scripts
+// Export for use
 window.OfflineDetector = OfflineDetector;
+

@@ -76,32 +76,37 @@
         <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
         <script>
             window.OneSignalDeferred = window.OneSignalDeferred || [];
+            window.OneSignalConfig = {
+                appId: "{{ config('services.onesignal.app_id') }}",
+                userEmail: "{{ auth()->user()->email }}",
+                userName: "{{ auth()->user()->name }}",
+                environment: "{{ config('app.env') }}",
+                isLocalhost: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
+            };
+
             OneSignalDeferred.push(async function(OneSignal) {
-                console.log("OneSignal Initializing with AppID:", "{{ config('services.onesignal.app_id') }}");
-                
                 try {
+                    // Initialize OneSignal
                     await OneSignal.init({
-                        appId: "{{ config('services.onesignal.app_id') }}",
-                        safari_web_id: "web.onesignal.auto.50d89199-747f-4818-96ca-50d4208129fc",
+                        appId: window.OneSignalConfig.appId,
+                        allowLocalhostAsSecureOrigin: true,
                         notifyButton: {
                             enable: true,
                         },
-                        allowLocalhostAsSecureOrigin: true,
-                        serviceWorkerParam: { scope: "/" },
-                        serviceWorkerPath: "OneSignalSDKWorker.js" // Gunakan path absolut
                     });
                     
-                    @auth
-                        // Login user with external ID so backend can target them
-                        console.log("OneSignal logging in user:", "{{ auth()->user()->email }}");
-                        OneSignal.login("{{ auth()->user()->email }}");
-                    @endauth
+                    // Login user
+                    await OneSignal.login(window.OneSignalConfig.userEmail);
                     
-                    // Force Slidedown prompt
+                    // Prompt for push notification permission
                     OneSignal.Slidedown.promptPush();
                     
+                    // Handle notification clicks
+                    OneSignal.Notifications.addEventListener("click", function(event) {
+                        window.location.href = '/app/dashboard';
+                    });
                 } catch (e) {
-                    console.error("OneSignal Init Error:", e);
+                    console.error('[OneSignal] Error:', e.message);
                 }
             });
         </script>

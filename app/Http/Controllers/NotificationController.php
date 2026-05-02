@@ -9,6 +9,7 @@ use App\Models\NotificationLog;
 use App\Models\MedicationLog;
 use App\Models\User;
 use App\Notifications\MedicationReminderNotification;
+use App\Services\OneSignalConfigService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
@@ -23,6 +24,35 @@ class NotificationController extends Controller
         $user = $request->user();
 
         try {
+            // Validate OneSignal is configured
+            if (!OneSignalConfigService::isConfigured()) {
+                $status = OneSignalConfigService::getConfigurationStatus();
+                Log::error('OneSignal configuration missing', $status);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Konfigurasi OneSignal tidak lengkap. Silakan hubungi administrator untuk mengatur ONESIGNAL_APP_ID dan ONESIGNAL_REST_API_KEY di file .env',
+                ], 500);
+            }
+
+            // Validate user data
+            $userValidation = OneSignalConfigService::validateUserForNotification($user);
+            if (!$userValidation['valid']) {
+                Log::error('User validation failed for notification', $userValidation);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi pengguna gagal: ' . implode(', ', $userValidation['errors']),
+                ], 422);
+            }
+
+            Log::info('Sending test notification', [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'timestamp' => now()->toDateTimeString(),
+            ]);
+
+            // Send test notification
             Notification::send($user, new MedicationReminderNotification(
                 'Obat Percobaan',
                 '1 Tablet',
@@ -31,19 +61,35 @@ class NotificationController extends Controller
                 'confirmation' // Gunakan template konfirmasi agar terlihat seperti test sukses
             ));
 
+            Log::info('Test notification sent successfully', [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'timestamp' => now()->toDateTimeString(),
+            ]);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Notifikasi percobaan telah dikirim ke OneSignal.',
+                'message' => 'Notifikasi percobaan telah dikirim ke OneSignal. Cek HP atau browser Anda dalam beberapa detik.',
+                'user_email' => $user->email,
             ]);
         } catch (\Exception $e) {
             Log::error('Gagal mengirim notifikasi percobaan OneSignal', [
                 'user_id' => $user->id,
-                'error' => $e->getMessage()
+                'user_email' => $user->email ?? 'N/A',
+                'error' => $e->getMessage(),
+                'error_class' => get_class($e),
+                'trace' => $e->getTraceAsString()
             ]);
+
+            $message = 'Gagal mengirim notifikasi';
+            if (config('app.debug')) {
+                $message .= ': ' . $e->getMessage();
+            }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengirim notifikasi: ' . $e->getMessage(),
+                'message' => $message,
+                'debug' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }

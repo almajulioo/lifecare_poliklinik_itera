@@ -106,9 +106,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Berhasil! Silakan cek HP/Browser Anda untuk notifikasi OneSignal.');
+                        console.log('Berhasil! Silakan cek HP/Browser Anda untuk notifikasi OneSignal.');
                     } else {
-                        alert('Gagal: ' + data.message);
+                        console.error('Gagal: ' + data.message);
                     }
                 })
                 .catch(error => {

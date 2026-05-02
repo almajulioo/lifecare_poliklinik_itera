@@ -5,10 +5,20 @@
 
 class NotificationManager {
   constructor() {
-    this.isSupported = 'Notification' in window && 'serviceWorker' in navigator;
-    this.permission = this.getPermission();
-    this.preferences = this.loadPreferences();
-    this.initUI();
+    try {
+      this.isSupported = 'Notification' in window && 'serviceWorker' in navigator;
+      this.permission = this.getPermission();
+      this.preferences = this.loadPreferences();
+      
+      // Defensive check for initUI
+      if (typeof this.initUI === 'function') {
+        this.initUI();
+      } else {
+        console.warn('[Notification Manager] initUI method not found, skipping UI initialization');
+      }
+    } catch (err) {
+      console.error('[Notification Manager] Constructor error:', err);
+    }
   }
 
   getPermission() {
@@ -20,7 +30,11 @@ class NotificationManager {
     const stored = localStorage.getItem('notification_preferences');
     
     if (stored) {
-      return JSON.parse(stored);
+      try {
+        return JSON.parse(stored);
+      } catch (err) {
+        console.warn('[Notification Manager] Error parsing preferences:', err);
+      }
     }
     
     // Default preferences
@@ -42,20 +56,24 @@ class NotificationManager {
   }
 
   initUI() {
-    // Auto-request permission on first visit (user can dismiss)
-    if (this.permission === 'default') {
-      this.requestPermissionOnce();
-    }
-    
-    // Listen for service worker messages
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        const { type, payload } = event.data;
-        
-        if (type === 'SHOW_NOTIFICATION') {
-          this.handleNotificationFromServiceWorker(payload);
-        }
-      });
+    try {
+      // Auto-request permission on first visit (user can dismiss)
+      if (this.permission === 'default') {
+        this.requestPermissionOnce();
+      }
+      
+      // Listen for service worker messages
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          const { type, payload } = event.data;
+          
+          if (type === 'SHOW_NOTIFICATION') {
+            this.handleNotificationFromServiceWorker(payload);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('[Notification Manager] Error in initUI:', err);
     }
   }
 
@@ -133,7 +151,11 @@ class NotificationManager {
       });
     } else {
       // Fallback: show via Notification API directly
-      new Notification(title, options);
+      try {
+        new Notification(title, options);
+      } catch (err) {
+        console.warn('[Notification Manager] Could not show notification:', err);
+      }
     }
 
     // Play sound if enabled
@@ -180,20 +202,33 @@ class NotificationManager {
   }
 
   static getInstance() {
-    if (!window.__NotificationManagerInstance) {
-      window.__NotificationManagerInstance = new NotificationManager();
+    try {
+      if (!window.__NotificationManagerInstance) {
+        window.__NotificationManagerInstance = new NotificationManager();
+      }
+      return window.__NotificationManagerInstance;
+    } catch (err) {
+      console.error('[Notification Manager] Error in getInstance:', err);
+      return null;
     }
-    return window.__NotificationManagerInstance;
   }
 }
 
-// Initialize when ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
+// Initialize when ready with error handling
+try {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        NotificationManager.getInstance();
+      } catch (err) {
+        console.error('[Notification Manager] Error during DOMContentLoaded initialization:', err);
+      }
+    });
+  } else {
     NotificationManager.getInstance();
-  });
-} else {
-  NotificationManager.getInstance();
+  }
+} catch (err) {
+  console.error('[Notification Manager] Error during initialization setup:', err);
 }
 
 // Export for use

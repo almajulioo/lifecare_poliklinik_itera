@@ -55,17 +55,17 @@ class MedicationReminderNotification extends Notification
         $message = OneSignalMessage::create()
             ->setSubject($titleAndBody['title'])
             ->setBody($titleAndBody['body'])
-            ->setUrl(url('/app/dashboard'))
-            ->setData('medicine_name', $this->medicineName)
-            ->setData('medicine_dose', $this->medicineDose)
-            ->setData('scheduled_time', $this->scheduledTime)
-            ->setData('medication_schedule_id', (string) $this->medicationScheduleId)
-            ->setData('reminder_type', $this->reminderType)
-            ->setData('action', 'medication_reminder');
+            ->setUrl(url('/app/dashboard'));
 
+        // Handle scheduled notifications
         if ($this->sendAfter) {
-            $formattedTime = \Carbon\Carbon::parse($this->sendAfter, 'Asia/Jakarta')->format('Y-m-d H:i:s \G\M\TO');
-            $message->setParameter('send_after', $formattedTime);
+            try {
+                $sendTime = \Carbon\Carbon::parse($this->sendAfter, 'Asia/Jakarta');
+                $formattedTime = $sendTime->utc()->format('Y-m-d H:i:s \U\T\C');
+                $message->setParameter('send_after', $formattedTime);
+            } catch (\Exception $e) {
+                // Silently fail if time parsing fails
+            }
         }
 
         return $message;

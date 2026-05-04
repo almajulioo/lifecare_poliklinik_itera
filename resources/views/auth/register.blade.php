@@ -1,4 +1,6 @@
 <x-patient-guest-layout>
+    <x-auth-session-status class="mb-6 text-center" :status="session('status')" />
+
     <!-- Title Section -->
     <div class="text-center px-6 mt-4">
         <h1 class="text-3xl font-bold text-gray-900 mb-3">Buat Akun Baru</h1>
@@ -179,6 +181,8 @@
                 required
                 autocomplete="username"
                 placeholder="you.123456@itera.ac.id"
+                oninvalid="this.setCustomValidity('Silakan masukkan email yang valid.')"
+                oninput="this.setCustomValidity('')"
                 class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition" 
                 style="focus:ring-color: var(--primary-color);"
             />
@@ -188,32 +192,58 @@
         <!-- Password -->
         <div>
             <label for="password" class="block font-semibold text-sm text-gray-800 mb-2.5">Password</label>
-            <input
-                id="password"
-                type="password"
-                name="password"
-                required
-                autocomplete="new-password"
-                placeholder="Buat password yang kuat"
-                class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition" 
-                style="focus:ring-color: var(--primary-color);"
-            />
+            <div class="relative">
+                <input
+                    id="password"
+                    type="password"
+                    name="password"
+                    required
+                    autocomplete="new-password"
+                    placeholder="Buat password yang kuat"
+                    class="block w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition" 
+                    style="focus:ring-color: var(--primary-color);"
+                />
+                <button
+                    type="button"
+                    onclick="togglePasswordVisibility('password')"
+                    class="absolute right-0 top-0 h-full px-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none transition rounded-r-lg"
+                    tabindex="-1"
+                >
+                    <svg id="password-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                </button>
+            </div>
             <x-input-error :messages="$errors->get('password')" class="mt-2 text-sm" />
         </div>
 
         <!-- Confirm Password -->
         <div>
             <label for="password_confirmation" class="block font-semibold text-sm text-gray-800 mb-2.5">Konfirmasi Password</label>
-            <input
-                id="password_confirmation"
-                type="password"
-                name="password_confirmation"
-                required
-                autocomplete="new-password"
-                placeholder="Konfirmasi password Anda"
-                class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition" 
-                style="focus:ring-color: var(--primary-color);"
-            />
+            <div class="relative">
+                <input
+                    id="password_confirmation"
+                    type="password"
+                    name="password_confirmation"
+                    required
+                    autocomplete="new-password"
+                    placeholder="Konfirmasi password Anda"
+                    class="block w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition" 
+                    style="focus:ring-color: var(--primary-color);"
+                />
+                <button
+                    type="button"
+                    onclick="togglePasswordVisibility('password_confirmation')"
+                    class="absolute right-0 top-0 h-full px-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none transition rounded-r-lg"
+                    tabindex="-1"
+                >
+                    <svg id="password_confirmation-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                </button>
+            </div>
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2 text-sm" />
         </div>
 

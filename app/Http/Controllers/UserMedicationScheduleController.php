@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use App\Models\MedicationSchedule;
 use App\Models\Medicine;
 use App\Notifications\MedicationReminderNotification;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
@@ -70,6 +71,23 @@ class UserMedicationScheduleController extends Controller
             $validated['source_type'] = 'PATIENT';
             $validated['is_active'] = true;
 
+            // Normalize empty end_date to null
+            if (array_key_exists('end_date', $validated) && $validated['end_date'] === '') {
+                $validated['end_date'] = null;
+            }
+
+            // If end_date is empty but duration_days exists, derive end_date from start_date
+            if (empty($validated['end_date']) && ! empty($validated['duration_days'])) {
+                $validated['end_date'] = Carbon::parse($validated['start_date'])
+                    ->addDays(((int) $validated['duration_days']) - 1)
+                    ->toDateString();
+            }
+
+            // If end_date is before today, set to null (same-day end_date must stay valid)
+            if ($validated['end_date'] && Carbon::parse($validated['end_date'])->startOfDay()->lt(today()->startOfDay())) {
+                $validated['end_date'] = null;
+            }
+
             // Ambil array waktu minum obat
             $times = $validated['times'];
             unset($validated['times']);
@@ -102,7 +120,7 @@ class UserMedicationScheduleController extends Controller
                 \Illuminate\Support\Facades\Log::warning('Gagal mengirim konfirmasi OneSignal: ' . $e->getMessage());
             }
 
-            return redirect()->route('app.schedules.index')
+            return redirect()->route('app.schedules.upcoming')
                 ->with('success', "Jadwal '{$medicine->name}' berhasil dibuat untuk " . count($times) . " waktu minum.");
 
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -128,15 +146,20 @@ class UserMedicationScheduleController extends Controller
                     ->with('error', 'Anda tidak berhak mengakses jadwal ini.');
             }
 
-            // Ambil obat milik user dan obat dari admin
-            $medicines = Medicine::where(function ($q) use ($user) {
-                    $q->where('user_id', $user->id)
-                      ->orWhere('source_type', 'ADMIN');
-                })
-                ->orderBy('name', 'asc')
-                ->get();
+            // Ambil hanya obat milik user (jangan tampilkan obat ADMIN di form edit)
+            $medicines = Medicine::where('user_id', $user->id)
+                    ->orderBy('name', 'asc')
+                    ->get();
 
-            return view('app.schedules.edit', compact('schedule', 'medicines'));
+            // Ambil semua jadwal lain dari obat yang sama untuk ditampilkan checklist
+            $relatedSchedules = MedicationSchedule::where('medicine_id', $schedule->medicine_id)
+                    ->where('user_id', $user->id)
+                    ->where('id', '!=', $schedule->id)
+                    ->with('medicine')
+                    ->orderBy('time')
+                    ->get();
+
+            return view('app.schedules.edit', compact('schedule', 'medicines', 'relatedSchedules'));
         } catch (\Exception $e) {
             return redirect()->route('app.schedules.index')
                 ->with('error', 'Gagal membuka form: ' . $e->getMessage());
@@ -166,14 +189,37 @@ class UserMedicationScheduleController extends Controller
                 'is_active' => ['nullable', 'boolean'],
             ]);
 
+            // Log current values for debugging
+            \Log::info('schedule.update: before', ['id' => $schedule->id, 'data' => $schedule->toArray()]);
+
             // Atur status aktif
             $validated['is_active'] = $request->boolean('is_active', $schedule->is_active);
+
+            // Normalize empty end_date to null
+            if (array_key_exists('end_date', $validated) && $validated['end_date'] === '') {
+                $validated['end_date'] = null;
+            }
+
+            // If end_date is empty but duration_days exists, derive end_date from start_date
+            if (empty($validated['end_date']) && ! empty($validated['duration_days'])) {
+                $validated['end_date'] = Carbon::parse($validated['start_date'])
+                    ->addDays(((int) $validated['duration_days']) - 1)
+                    ->toDateString();
+            }
+
+            // If end_date is before today, set to null (same-day end_date must stay valid)
+            if ($validated['end_date'] && Carbon::parse($validated['end_date'])->startOfDay()->lt(today()->startOfDay())) {
+                $validated['end_date'] = null;
+            }
 
             // Update data jadwal
             $schedule->update($validated);
             $medicine = Medicine::find($validated['medicine_id']);
 
-            return redirect()->route('app.schedules.index')
+            // Log after update
+            \Log::info('schedule.update: after', ['id' => $schedule->id, 'data' => $schedule->fresh()->toArray()]);
+
+            return redirect()->route('app.schedules.upcoming')
                 ->with('success', "Jadwal obat '{$medicine->name}' berhasil diperbarui.");
 
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -203,11 +249,11 @@ class UserMedicationScheduleController extends Controller
             $medicineName = $schedule->medicine->name;
             $schedule->delete();
 
-            return redirect()->route('app.schedules.index')
+            return redirect()->route('app.schedules.upcoming')
                 ->with('success', "Jadwal obat '{$medicineName}' berhasil dihapus.");
 
         } catch (\Exception $e) {
-            return redirect()->route('app.schedules.index')
+            return redirect()->route('app.schedules.upcoming')
                 ->with('error', 'Gagal menghapus jadwal: ' . $e->getMessage());
         }
     }

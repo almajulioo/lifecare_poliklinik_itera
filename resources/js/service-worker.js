@@ -256,6 +256,7 @@ self.addEventListener('periodicsync', (event) => {
 async function checkNotifications() {
   try {
     console.log('[Service Worker] Checking notifications...');
+    await processExpiredSnoozes();
     
     let notifications = null;
 
@@ -277,7 +278,7 @@ async function checkNotifications() {
         await storeInIndexedDB('notification_times', {
           id: 'today-notifications',
           data: notifications,
-          timestamp: new Date().toIso8601String(),
+          timestamp: new Date().toISOString(),
         });
         
         console.log('[Service Worker] Fetched fresh notifications from server');
@@ -337,7 +338,7 @@ async function checkNotifications() {
           requireInteraction: true,
           actions: [
             { action: 'confirm', title: 'Saya sudah minum ✓' },
-            { action: 'snooze', title: 'Tunda 15 menit' },
+            { action: 'snooze', title: 'Tunda 5 menit' },
           ],
           // Embed data untuk digunakan saat notification di-click
           data: {
@@ -386,7 +387,7 @@ async function syncNotificationTimes() {
     await storeInIndexedDB('notification_times', {
       id: 'today-notifications',
       data: data.today,
-      timestamp: new Date().toIso8601String(),
+      timestamp: new Date().toISOString(),
     });
     
     console.log('[Service Worker] Notification times synced');
@@ -424,7 +425,7 @@ async function checkSecondReminders() {
         await storeInIndexedDB('notification_times', {
           id: 'second-reminders',
           data: secondReminders,
-          timestamp: new Date().toIso8601String(),
+          timestamp: new Date().toISOString(),
         });
         
         console.log('[Service Worker] Fetched fresh second reminders from server');
@@ -470,7 +471,7 @@ async function checkSecondReminders() {
         requireInteraction: true,
         actions: [
           { action: 'confirm', title: 'Saya sudah minum ✓' },
-          { action: 'snooze', title: 'Tunda 15 menit' },
+          { action: 'snooze', title: 'Tunda 5 menit' },
         ],
         // Embed data untuk digunakan saat notification di-click
         data: {
@@ -530,7 +531,7 @@ async function markNotificationSent(scheduleId) {
       },
       body: JSON.stringify({
         medication_schedule_id: scheduleId,
-        scheduled_time: new Date().toIso8601String(),
+        scheduled_time: new Date().toISOString(),
         notification_type: 'browser',
       }),
     });
@@ -717,7 +718,7 @@ self.addEventListener('notificationclick', (event) => {
   } else if (event.action === 'snooze') {
     console.log('[Service Worker] Action: snooze medication');
     // Snooze for 15 minutes
-    event.waitUntil(snoozeMedication(notificationData.id));
+    event.waitUntil(snoozeMedication(notificationData));
   } else {
     console.log('[Service Worker] Action: default click - open app');
     // Default click: open app with modal
@@ -812,8 +813,9 @@ async function confirmMedicationTaken(scheduleId) {
 /**
  * Snooze Medication Reminder
  */
-async function snoozeMedication(scheduleId) {
+async function snoozeMedication(notificationData) {
   try {
+    const scheduleId = notificationData.id;
     const response = await fetch('/api/medication-snooze', {
       method: 'POST',
       headers: {
@@ -822,12 +824,12 @@ async function snoozeMedication(scheduleId) {
       },
       body: JSON.stringify({
         medication_schedule_id: scheduleId,
-        snooze_minutes: 15,
+        snooze_minutes: 5,
       }),
     });
 
     if (response.ok) {
-      // Store snooze info in IndexedDB so service worker knows to skip notification
+      // Store full notification payload so it can be shown again after snooze expires
       const snoozeData = await response.json();
       const snoozeUntil = new Date(snoozeData.snoozed_until);
       
@@ -835,18 +837,79 @@ async function snoozeMedication(scheduleId) {
         id: `snooze_${scheduleId}`,
         schedule_id: scheduleId,
         snoozed_until: snoozeUntil.getTime(),
-      });
-      
-      // Show snooze confirmation
-      self.registration.showNotification('⏱ Pengingat Ditunda', {
-        body: 'Anda akan menerima pengingat dalam 15 menit.',
-        icon: '⏱',
-        badge: '⏱',
-        tag: 'medication-snoozed',
+        title: '💊 Waktu Minum Obat',
+        body: `${notificationData.medicine_name} (${notificationData.medicine_dose})`,
+        icon: '💊',
+        badge: '💊',
+        tag: `medication-${scheduleId}`,
+        route: notificationData.route || '/app/dashboard',
+        medicine_name: notificationData.medicine_name,
+        medicine_dose: notificationData.medicine_dose,
+        medicine_unit: notificationData.medicine_unit || '',
+        time: notificationData.time,
       });
     }
   } catch (error) {
     console.error('[Service Worker] Error snoozing medication:', error);
+  }
+}
+
+/**
+ * Re-show reminders whose snooze time has expired.
+ */
+async function processExpiredSnoozes() {
+  try {
+    const request = indexedDB.open('lifecare_db', 1);
+
+    request.onsuccess = async () => {
+      const db = request.result;
+      const transaction = db.transaction(['snoozes'], 'readonly');
+      const store = transaction.objectStore('snoozes');
+      const getAllRequest = store.getAll();
+
+      getAllRequest.onsuccess = async () => {
+        const snoozes = getAllRequest.result || [];
+        const now = Date.now();
+
+        for (const snooze of snoozes) {
+          if (!snooze?.snoozed_until || now < snooze.snoozed_until) {
+            continue;
+          }
+
+          self.registration.showNotification(snooze.title || '💊 Waktu Minum Obat', {
+            body: snooze.body || 'Waktunya minum obat Anda.',
+            icon: snooze.icon || '💊',
+            badge: snooze.badge || '💊',
+            tag: snooze.tag || `medication-${snooze.schedule_id}`,
+            requireInteraction: true,
+            actions: [
+              { action: 'confirm', title: 'Saya sudah minum ✓' },
+              { action: 'snooze', title: 'Tunda 5 menit' },
+            ],
+            data: {
+              id: snooze.schedule_id,
+              medicine_name: snooze.medicine_name,
+              medicine_dose: snooze.medicine_dose,
+              medicine_unit: snooze.medicine_unit || '',
+              time: snooze.time,
+              route: snooze.route || '/app/dashboard',
+            },
+          });
+
+          await clearFromIndexedDB('snoozes', snooze.id);
+        }
+      };
+
+      getAllRequest.onerror = () => {
+        console.error('[Service Worker] Error reading snoozed items:', getAllRequest.error);
+      };
+    };
+
+    request.onerror = () => {
+      console.error('[Service Worker] Error opening IndexedDB for snooze processing:', request.error);
+    };
+  } catch (error) {
+    console.error('[Service Worker] Error processing expired snoozes:', error);
   }
 }
 

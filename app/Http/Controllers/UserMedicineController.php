@@ -103,7 +103,7 @@ class UserMedicineController extends Controller
         $medicine->update($validated);
 
         return redirect()
-            ->route('app.medicines.index')
+            ->route('app.medications.index')
             ->with('success', 'Obat berhasil diperbarui: ' . $medicine->name);
     }
 

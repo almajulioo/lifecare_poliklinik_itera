@@ -5,7 +5,7 @@
 <div class="pb-28 bg-white min-h-screen">
     {{-- HEADER --}}
     <div class="bg-white px-4 pt-4 pb-4 border-b border-gray-100 sticky top-0 z-10">
-        <h1 class="text-lg font-bold text-gray-900">📋 Daftar Obat</h1>
+        <h1 class="text-lg font-bold text-gray-900"> Daftar Obat</h1>
         <p class="text-xs text-gray-500 mt-1">Obat pribadi Anda dan obat dari jadwal yang diberikan</p>
     </div>
 

@@ -301,8 +301,8 @@ class NotificationScheduler {
     async markAsNotified(notif) {
         const key = `${notif.id}-${new Date().toDateString()}`;
         this.scheduledNotifications.set(key, {
-            scheduled_time: new Date().toIso8601String(),
-            sent_at: new Date().toIso8601String(),
+            scheduled_time: new Date().toISOString(),
+            sent_at: new Date().toISOString(),
         });
 
         // Also mark on server if online
@@ -316,7 +316,7 @@ class NotificationScheduler {
                     },
                     body: JSON.stringify({
                         medication_schedule_id: notif.id,
-                        scheduled_time: new Date().toIso8601String(),
+                        scheduled_time: new Date().toISOString(),
                         notification_type: this.preferences.sound_enabled ? 'both' : 'browser',
                     }),
                 });
@@ -342,7 +342,7 @@ class NotificationScheduler {
                     requireInteraction: true,
                     actions: [
                         { action: 'confirm', title: 'Saya sudah minum ✓' },
-                        { action: 'snooze', title: 'Tunda 15 menit' },
+                        { action: 'snooze', title: 'Tunda 5 menit' },
                         { action: 'dismiss', title: 'Tutup' },
                     ],
                 });
@@ -455,7 +455,7 @@ class NotificationScheduler {
                             requireInteraction: true,
                             actions: [
                                 { action: 'confirm', title: 'Saya sudah minum ✓' },
-                                { action: 'snooze', title: 'Tunda 15 menit' },
+                                { action: 'snooze', title: 'Tunda 5 menit' },
                             ],
                         });
 
@@ -507,7 +507,7 @@ class NotificationScheduler {
     /**
      * Snooze notification
      */
-    async snoozeNotification(scheduleId, minutes = 15) {
+    async snoozeNotification(scheduleId, minutes = 5) {
         try {
             // Mark on server if online
             if (this.isOnline) {
@@ -535,7 +535,7 @@ class NotificationScheduler {
             await store.add({
                 id: `${scheduleId}-${new Date().getTime()}`,
                 schedule_id: scheduleId,
-                snooze_until: snoozeUntil.toIso8601String(),
+                snooze_until: snoozeUntil.toISOString(),
             });
 
             console.log(`[NotificationScheduler] Snoozed for ${minutes} minutes`);

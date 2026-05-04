@@ -107,6 +107,7 @@
                         id="end_date"
                         name="end_date"
                         value="{{ old('end_date') }}"
+                        min="{{ now()->toDateString() }}"
                         onchange="calculateDuration()"
                         class="w-full px-4 py-2 border {{ $errors->has('end_date') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
                     />
@@ -116,55 +117,54 @@
                 </div>
             </div>
 
-            <!-- Row: Jam Minum & Frekuensi -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-900 mb-2">
-                        Jam Minum <span class="text-red-600">*</span>
-                    </label>
-                    <div id="time-inputs-container" class="space-y-2">
-                        <div class="time-input-wrapper">
-                            <label for="time_1" class="block text-xs text-gray-600 mb-1">Jam ke 1</label>
-                            <input
-                                type="time"
-                                id="time_1"
-                                name="times[]"
-                                value="{{ old('times.0') }}"
-                                required
-                                class="w-full px-4 py-2 border {{ $errors->has('times') || $errors->has('times.0') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
-                            />
-                        </div>
-                    </div>
-                    @error('times')
-                        <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
-                    @enderror
-                </div>
+            <!-- Frekuensi -->
+            <div>
+                <label for="frequency" class="block text-sm font-semibold text-gray-900 mb-2">
+                    Frekuensi (Opsional)
+                </label>
+                <select
+                    id="frequency"
+                    name="frequency"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
+                    onchange="updateTimeInputs()"
+                >
+                    <option value="">-- Pilih Frekuensi --</option>
+                    <option value="1x sehari" {{ old('frequency') == '1x sehari' ? 'selected' : '' }}>1x sehari</option>
+                    <option value="2x sehari" {{ old('frequency') == '2x sehari' ? 'selected' : '' }}>2x sehari</option>
+                    <option value="3x sehari" {{ old('frequency') == '3x sehari' ? 'selected' : '' }}>3x sehari</option>
+                    <option value="4x sehari" {{ old('frequency') == '4x sehari' ? 'selected' : '' }}>4x sehari</option>
+                    <option value="setiap 12 jam" {{ old('frequency') == 'setiap 12 jam' ? 'selected' : '' }}>Setiap 12 jam</option>
+                    <option value="setiap 8 jam" {{ old('frequency') == 'setiap 8 jam' ? 'selected' : '' }}>Setiap 8 jam</option>
+                    <option value="setiap 6 jam" {{ old('frequency') == 'setiap 6 jam' ? 'selected' : '' }}>Setiap 6 jam</option>
+                    <option value="setiap 4 jam" {{ old('frequency') == 'setiap 4 jam' ? 'selected' : '' }}>Setiap 4 jam</option>
+                    <option value="saat diperlukan" {{ old('frequency') == 'saat diperlukan' ? 'selected' : '' }}>Saat diperlukan</option>
+                </select>
+                @error('frequency')
+                    <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
+                @enderror
+            </div>
 
-                <div>
-                    <label for="frequency" class="block text-sm font-semibold text-gray-900 mb-2">
-                        Frekuensi (Opsional)
-                    </label>
-                    <select
-                        id="frequency"
-                        name="frequency"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
-                        onchange="updateTimeInputs()"
-                    >
-                        <option value="">-- Pilih Frekuensi --</option>
-                        <option value="1x sehari" {{ old('frequency') == '1x sehari' ? 'selected' : '' }}>1x sehari</option>
-                        <option value="2x sehari" {{ old('frequency') == '2x sehari' ? 'selected' : '' }}>2x sehari</option>
-                        <option value="3x sehari" {{ old('frequency') == '3x sehari' ? 'selected' : '' }}>3x sehari</option>
-                        <option value="4x sehari" {{ old('frequency') == '4x sehari' ? 'selected' : '' }}>4x sehari</option>
-                        <option value="setiap 12 jam" {{ old('frequency') == 'setiap 12 jam' ? 'selected' : '' }}>Setiap 12 jam</option>
-                        <option value="setiap 8 jam" {{ old('frequency') == 'setiap 8 jam' ? 'selected' : '' }}>Setiap 8 jam</option>
-                        <option value="setiap 6 jam" {{ old('frequency') == 'setiap 6 jam' ? 'selected' : '' }}>Setiap 6 jam</option>
-                        <option value="setiap 4 jam" {{ old('frequency') == 'setiap 4 jam' ? 'selected' : '' }}>Setiap 4 jam</option>
-                        <option value="saat diperlukan" {{ old('frequency') == 'saat diperlukan' ? 'selected' : '' }}>Saat diperlukan</option>
-                    </select>
-                    @error('frequency')
-                        <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
-                    @enderror
+            <!-- Jam Minum -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-900 mb-2">
+                    Jam Minum <span class="text-red-600">*</span>
+                </label>
+                <div id="time-inputs-container" class="space-y-2">
+                    <div class="time-input-wrapper">
+                        <label for="time_1" class="block text-xs text-gray-600 mb-1">Jam ke 1</label>
+                        <input
+                            type="time"
+                            id="time_1"
+                            name="times[]"
+                            value="{{ old('times.0') }}"
+                            required
+                            class="w-full px-4 py-2 border {{ $errors->has('times') || $errors->has('times.0') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg text-sm focus:outline-none focus:border-blue-500 transition"
+                        />
+                    </div>
                 </div>
+                @error('times')
+                    <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
+                @enderror
             </div>
 
             <!-- Durasi -->
@@ -211,7 +211,7 @@
                     Simpan Jadwal
                 </button>
                 <a
-                    href="{{ route('app.schedules.index') }}"
+                    href="{{ route('app.dashboard') }}"
                     class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition text-center"
                 >
                     Batal

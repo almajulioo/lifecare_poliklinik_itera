@@ -21,6 +21,56 @@
         </div>
     @endif
 
+    <!-- Info: Related Schedules Checklist -->
+    @if($relatedSchedules->count() > 0)
+        <div class="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
+            <div class="flex items-start gap-3">
+                <div class="text-blue-600 text-lg mt-1">ℹ️</div>
+                <div class="flex-1">
+                    <h3 class="font-semibold text-blue-900 mb-2">
+                        Jadwal Lain dari Obat "{{ $schedule->medicine->name }}"
+                    </h3>
+                    <p class="text-xs text-blue-700 mb-3">
+                        Obat ini memiliki {{ $relatedSchedules->count() + 1 }} jadwal total. Perubahan hanya akan diterapkan pada jadwal ini (ID: {{ $schedule->id }}), bukan pada jadwal lain berikut:
+                    </p>
+                    <div class="space-y-2">
+                        @foreach($relatedSchedules as $related)
+                            <div class="flex items-center gap-2 text-xs text-blue-800 bg-white bg-opacity-50 p-2 rounded">
+                                <span class="inline-block w-4 h-4 bg-blue-200 rounded flex items-center justify-center">→</span>
+                                <span>
+                                    <strong>ID {{ $related->id }}</strong>
+                                    — {{ $related->time }} 
+                                    @if($related->frequency)
+                                        ({{ $related->frequency }})
+                                    @endif
+                                    @if($related->start_date && $related->end_date)
+                                        <span class="text-blue-600">{{ $related->start_date }} s/d {{ $related->end_date }}</span>
+                                    @elseif($related->start_date)
+                                        <span class="text-blue-600">mulai {{ $related->start_date }}</span>
+                                    @endif
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    @else
+        <div class="bg-green-50 border-l-4 border-green-500 rounded-lg p-4">
+            <div class="flex items-start gap-3">
+                <div class="text-green-600 text-lg">✓</div>
+                <div>
+                    <h3 class="font-semibold text-green-900">
+                        Jadwal Unik
+                    </h3>
+                    <p class="text-xs text-green-700">
+                        Ini adalah satu-satunya jadwal untuk obat "{{ $schedule->medicine->name }}". Perubahan hanya akan diterapkan di sini.
+                    </p>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Form -->
     <form method="POST" action="{{ route('app.schedules.update', $schedule) }}" class="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
         @csrf
@@ -39,7 +89,7 @@
             >
                 <option value="">-- Pilih --</option>
                 @foreach($medicines as $medicine)
-                    <option value="{{ $medicine->id }}" {{ ($old('medicine_id') ?? $schedule->medicine_id) == $medicine->id ? 'selected' : '' }}>
+                    <option value="{{ $medicine->id }}" {{ old('medicine_id', $schedule->medicine_id) == $medicine->id ? 'selected' : '' }}>
                         {{ $medicine->name }} ({{ $medicine->dose }} {{ $medicine->unit }})
                     </option>
                 @endforeach
@@ -58,7 +108,7 @@
                 type="date"
                 id="start_date"
                 name="start_date"
-                value="{{ old('start_date') ?? $schedule->start_date }}"
+                value="{{ old('start_date', optional($schedule->start_date)->format('Y-m-d')) }}"
                 required
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
             />
@@ -76,7 +126,8 @@
                 type="date"
                 id="end_date"
                 name="end_date"
-                value="{{ old('end_date') ?? $schedule->end_date }}"
+                value="{{ old('end_date', $schedule->end_date ? $schedule->end_date->format('Y-m-d') : '') }}"
+                min="{{ now()->toDateString() }}"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
             />
             @error('end_date')
@@ -158,6 +209,40 @@
             </label>
         </div>
 
+        <!-- Changes Summary -->
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-4">
+            <h4 class="font-semibold text-purple-900 mb-3 text-sm">📋 Ringkasan Perubahan:</h4>
+            <div class="space-y-2 text-xs text-purple-800">
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-4 h-4 bg-purple-300 rounded-full flex items-center justify-center text-xs text-white">✓</span>
+                    <span><strong>Obat:</strong> {{ $schedule->medicine->name }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-4 h-4 bg-purple-300 rounded-full flex items-center justify-center text-xs text-white">✓</span>
+                    <span><strong>Jadwal ID:</strong> {{ $schedule->id }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-4 h-4 bg-purple-300 rounded-full flex items-center justify-center text-xs text-white">✓</span>
+                    <span><strong>Jam Minum:</strong> <span id="preview-time">{{ $schedule->time }}</span></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-4 h-4 bg-purple-300 rounded-full flex items-center justify-center text-xs text-white">✓</span>
+                    <span><strong>Mulai:</strong> <span id="preview-start">{{ optional($schedule->start_date)->format('d/m/Y') }}</span></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-4 h-4 bg-purple-300 rounded-full flex items-center justify-center text-xs text-white">✓</span>
+                    <span><strong>Selesai:</strong> <span id="preview-end">{{ $schedule->end_date ? $schedule->end_date->format('d/m/Y') : '(tidak terbatas)' }}</span></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-4 h-4 bg-purple-300 rounded-full flex items-center justify-center text-xs text-white">✓</span>
+                    <span><strong>Status:</strong> <span id="preview-status">{{ $schedule->is_active ? 'Aktif' : 'Nonaktif' }}</span></span>
+                </div>
+            </div>
+            <p class="text-xs text-purple-600 mt-3 italic">
+                💡 Perubahan hanya akan diterapkan pada jadwal ini. Jadwal lain dari obat yang sama tidak akan berubah.
+            </p>
+        </div>
+
         <!-- Buttons -->
         <div class="flex gap-2 pt-2 border-t">
             <button
@@ -167,22 +252,60 @@
                 Perbarui
             </button>
             <a
-                href="{{ route('app.schedules.index') }}"
+                href="{{ route('app.schedules.upcoming') }}"
                 class="flex-1 px-4 py-3 bg-gray-300 text-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-400 transition text-center"
             >
                 Batal
             </a>
-            <form method="POST" action="{{ route('app.schedules.destroy', $schedule) }}" style="flex: 1;" onsubmit="return confirm('Hapus jadwal?');">
-                @csrf
-                @method('DELETE')
-                <button
-                    type="submit"
-                    class="w-full px-4 py-3 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition"
-                >
-                    Hapus
-                </button>
-            </form>
         </div>
     </form>
+
+    <!-- Hapus Form (Separate dari Update Form) -->
+    <form method="POST" action="{{ route('app.schedules.destroy', $schedule) }}" onsubmit="return confirm('Hapus jadwal?');">
+        @csrf
+        @method('DELETE')
+        <button
+            type="submit"
+            class="w-full px-4 py-3 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition"
+        >
+            Hapus
+        </button>
+    </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update preview saat jam minum berubah
+    const timeInput = document.getElementById('time');
+    if (timeInput) {
+        timeInput.addEventListener('change', function() {
+            document.getElementById('preview-time').textContent = this.value || '{{ $schedule->time }}';
+        });
+    }
+
+    // Update preview saat tanggal mulai berubah
+    const startDateInput = document.getElementById('start_date');
+    if (startDateInput) {
+        startDateInput.addEventListener('change', function() {
+            document.getElementById('preview-start').textContent = this.value || '{{ $schedule->start_date }}';
+        });
+    }
+
+    // Update preview saat tanggal selesai berubah
+    const endDateInput = document.getElementById('end_date');
+    if (endDateInput) {
+        endDateInput.addEventListener('change', function() {
+            document.getElementById('preview-end').textContent = this.value || '(tidak terbatas)';
+        });
+    }
+
+    // Update preview saat status aktif berubah
+    const isActiveCheckbox = document.getElementById('is_active');
+    if (isActiveCheckbox) {
+        isActiveCheckbox.addEventListener('change', function() {
+            document.getElementById('preview-status').textContent = this.checked ? 'Aktif' : 'Nonaktif';
+        });
+    }
+});
+</script>
 @endsection

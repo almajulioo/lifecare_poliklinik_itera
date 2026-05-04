@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\MedicationSchedule;
+use App\Models\NotificationLog;
 use Carbon\Carbon;
 
 
@@ -33,12 +34,16 @@ class DashboardController extends Controller
             ->get();
 
         // Ambil obat yang sudah melewati waktu minumnya (untuk reminder di dashboard)
-        $dueMedications = $todaySchedules->filter(function($schedule) use ($now) {
+        $dueMedications = $todaySchedules->filter(function($schedule) use ($now, $user) {
             [$hour, $minute] = explode(':', $schedule->time);
             $scheduledTime = Carbon::createFromTime($hour, $minute);
             
             // Hanya tampilkan jika waktu sekarang > waktu jadwal (sudah melewati)
-            return $now->gt($scheduledTime);
+            if (! $now->gt($scheduledTime)) {
+                return false;
+            }
+
+            return ! $this->isScheduleSnoozed($user->id, $schedule->id, $now);
         })
         ->filter(function($schedule) {
             // Filter hanya obat yang belum diminum
@@ -97,6 +102,8 @@ class DashboardController extends Controller
             })
             ->get();
 
+        \Log::info('upcomingSchedules: fetched schedules', ['user' => $userId, 'count' => $schedules->count()]);
+
         // Inisialisasi array untuk menyimpan jadwal per tanggal (30 hari)
         $schedulesByDate = [];
         for ($i = 0; $i < 30; $i++) {
@@ -134,6 +141,8 @@ class DashboardController extends Controller
             return $schedules->count() > 0;
         });
 
+        \Log::info('upcomingSchedules: grouped dates', ['user' => $userId, 'dates' => count($schedulesByDate)]);
+
         // Urutkan berdasarkan tanggal
         ksort($schedulesByDate);
 
@@ -165,10 +174,14 @@ class DashboardController extends Controller
             ->get();
 
         // Filter obat yang sudah melewati waktu minumnya
-        $dueMedications = $todaySchedules->filter(function($schedule) use ($now) {
+        $dueMedications = $todaySchedules->filter(function($schedule) use ($now, $user) {
             [$hour, $minute] = explode(':', $schedule->time);
             $scheduledTime = Carbon::createFromTime($hour, $minute);
-            return $now->gt($scheduledTime);
+            if (! $now->gt($scheduledTime)) {
+                return false;
+            }
+
+            return ! $this->isScheduleSnoozed($user->id, $schedule->id, $now);
         })
         ->filter(function($schedule) {
             // Filter hanya obat yang belum diminum
@@ -200,5 +213,20 @@ class DashboardController extends Controller
             'count' => count($medications),
             'medications' => $medications,
         ]);
+    }
+
+    private function isScheduleSnoozed(int $userId, int $scheduleId, Carbon $now): bool
+    {
+        $notifLog = NotificationLog::where('user_id', $userId)
+            ->where('medication_schedule_id', $scheduleId)
+            ->whereDate('scheduled_time', today())
+            ->latest('id')
+            ->first();
+
+        if (! $notifLog || $notifLog->status !== 'snoozed' || ! $notifLog->snooze_until) {
+            return false;
+        }
+
+        return Carbon::parse($notifLog->snooze_until)->gt($now);
     }
 }

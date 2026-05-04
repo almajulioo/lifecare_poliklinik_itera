@@ -512,12 +512,16 @@ class NotificationController extends Controller
             ->get();
 
         // Filter obat yang waktu minumnya sudah melewati waktu sekarang
-        $dueMedications = $todaySchedules->filter(function($schedule) use ($now) {
+        $dueMedications = $todaySchedules->filter(function($schedule) use ($now, $user) {
             [$hour, $minute] = explode(':', $schedule->time);
             $scheduledTime = Carbon::createFromTime($hour, $minute);
             
             // Hanya tampilkan jika waktu sekarang > waktu jadwal (sudah melewati)
-            return $now->gt($scheduledTime);
+            if (! $now->gt($scheduledTime)) {
+                return false;
+            }
+
+            return ! $this->isScheduleSnoozed($user->id, $schedule->id, $now);
         })
         ->filter(function($schedule) {
             // Filter hanya obat yang belum diminum
@@ -548,6 +552,21 @@ class NotificationController extends Controller
             'count' => $dueMedications->count(),
             'current_time' => $now->toIso8601String(),
         ]);
+    }
+
+    private function isScheduleSnoozed(int $userId, int $scheduleId, Carbon $now): bool
+    {
+        $notifLog = NotificationLog::where('user_id', $userId)
+            ->where('medication_schedule_id', $scheduleId)
+            ->whereDate('scheduled_time', today())
+            ->latest('id')
+            ->first();
+
+        if (! $notifLog || $notifLog->status !== 'snoozed' || ! $notifLog->snooze_until) {
+            return false;
+        }
+
+        return Carbon::parse($notifLog->snooze_until)->gt($now);
     }
 
     // Tangani tombol "Nanti" - snooze reminder 5 menit

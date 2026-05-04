@@ -23,7 +23,7 @@ use App\Http\Controllers\Admin\ClinicPatientController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 /*
@@ -74,11 +74,23 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/schedules', [UserMedicationScheduleController::class, 'store'])
             ->name('schedules.store');
         Route::get('/schedules/{schedule}/edit', [UserMedicationScheduleController::class, 'edit'])
-            ->name('schedules.edit');
+            ->name('schedules.edit')
+            ->missing(function () {
+                return redirect()->route('app.schedules.upcoming')
+                    ->with('error', 'Jadwal tidak ditemukan atau mungkin sudah dihapus.');
+            });
         Route::put('/schedules/{schedule}', [UserMedicationScheduleController::class, 'update'])
-            ->name('schedules.update');
+            ->name('schedules.update')
+            ->missing(function () {
+                return redirect()->route('app.schedules.upcoming')
+                    ->with('error', 'Jadwal tidak ditemukan atau mungkin sudah dihapus.');
+            });
         Route::delete('/schedules/{schedule}', [UserMedicationScheduleController::class, 'destroy'])
-            ->name('schedules.destroy');
+            ->name('schedules.destroy')
+            ->missing(function () {
+                return redirect()->route('app.schedules.upcoming')
+                    ->with('error', 'Jadwal tidak ditemukan atau mungkin sudah dihapus.');
+            });
 
         // History list
         Route::get('/history', [MedicationHistoryController::class, 'index'])

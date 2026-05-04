@@ -120,7 +120,7 @@ function showMedicationModal(medicationData) {
         <!-- Snooze Button -->
         <button onclick="
           console.log('Snooze clicked');
-          alert('Pengingat ditunda 15 menit');
+          alert('Pengingat ditunda 5 menit');
           document.getElementById('medication-modal').remove();
         " style="
           width: 100%;

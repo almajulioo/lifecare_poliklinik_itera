@@ -61,7 +61,7 @@
                         </button>
                     </form>
                     <button class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2 px-3 rounded transition" onclick="snoozeReminder(this, {{ $medication->id }})">
-                        Nanti 5 Menit
+                        Tunda 5 Menit
                     </button>
                 </div>
             </div>
@@ -146,14 +146,18 @@
         <div class="grid grid-cols-2 gap-4">
             {{-- Tambah Jadwal Pengingat --}}
             <a href="{{ route('app.schedules.create') }}" class="bg-white rounded-lg p-5 flex flex-col items-center justify-center border border-gray-200 hover:border-green-300 hover:bg-green-50 transition duration-200">
-                <div class="text-4xl mb-3">➕</div>
+                <svg class="w-8 h-8 mb-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
                 <span class="text-sm font-semibold text-gray-900 text-center">Tambah Jadwal</span>
                 <span class="text-xs text-gray-500 text-center mt-1">Pengingat</span>
             </a>
 
             {{-- Jadwal Minum Obat --}}
-            <a href="{{ route('app.schedules.upcoming') }}" class="bg-white rounded-lg p-5 flex flex-col items-center justify-center border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition duration-200">
-                <div class="text-4xl mb-3">📋</div>
+            <a href="{{ route('app.schedules.upcoming') }}" class="bg-white rounded-lg p-5 flex flex-col items-center justify-center border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition duration-200">
+                <svg class="w-8 h-8 mb-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
                 <span class="text-sm font-semibold text-gray-900 text-center">Jadwal</span>
                 <span class="text-xs text-gray-500 text-center mt-1">Minum Obat</span>
             </a>
@@ -214,7 +218,7 @@ window.addEventListener('beforeunload', function() {
 function snoozeReminder(btn, medicationScheduleId) {
     // Disable button to prevent multiple clicks
     btn.disabled = true;
-    btn.textContent = 'Memproses...';
+    btn.textContent = 'Menyimpan Tunda...';
     
     fetch('/api/snooze-reminder-dashboard', {
         method: 'POST',
@@ -237,7 +241,7 @@ function snoozeReminder(btn, medicationScheduleId) {
     .catch(error => {
         console.error('Error:', error);
         btn.disabled = false;
-        btn.textContent = 'Nanti 5 Menit';
+        btn.textContent = 'Tunda 5 Menit';
     });
 }
 </script>

@@ -119,5 +119,34 @@
         </div>
     </x-admin.card>
     @endif
+
+    <!-- Recent Schedules -->
+    <x-admin.card title="Jadwal Terbaru">
+        @if(isset($recentSchedules) && $recentSchedules->isNotEmpty())
+            <div class="space-y-3">
+                @foreach ($recentSchedules as $schedule)
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0 last:pb-0">
+                        <div class="min-w-0">
+                            <p class="font-medium text-gray-900">{{ $schedule->user->name ?? 'N/A' }} — {{ $schedule->medicine->name ?? 'N/A' }}</p>
+                            <p class="text-sm text-gray-500">{{ optional($schedule->created_at)->diffForHumans() }} • {{ $schedule->time ?? '—' }}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('admin.schedules.edit', $schedule) }}" class="text-sm px-3 py-1 bg-blue-50 text-blue-700 rounded">Edit</a>
+                            <form action="{{ route('admin.schedules.destroy', $schedule) }}" method="POST" onsubmit="return confirm('Hapus jadwal ini?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-sm px-3 py-1 bg-red-50 text-red-700 rounded">Hapus</button>
+                            </form>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <div class="mt-3 text-right">
+                <a href="{{ route('admin.schedules.index') }}" class="text-sm text-blue-600 hover:underline">Lihat semua jadwal →</a>
+            </div>
+        @else
+            <div class="text-center py-6 text-gray-500">Belum ada jadwal terakhir. <a href="{{ route('admin.schedules.create') }}" class="text-blue-600">Buat jadwal</a></div>
+        @endif
+    </x-admin.card>
 </div>
 @endsection

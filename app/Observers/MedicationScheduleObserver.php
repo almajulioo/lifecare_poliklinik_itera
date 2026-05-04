@@ -4,34 +4,38 @@ namespace App\Observers;
 
 use App\Models\MedicationSchedule;
 use App\Models\ClinicPatient;
+use App\Services\OneSignalSyncService;
 
 class MedicationScheduleObserver
 {
     /**
      * Handle the MedicationSchedule "created" event.
-     * Saat jadwal obat baru dibuat, auto-sync status pasien
+     * Saat jadwal obat baru dibuat, auto-sync status pasien dan OneSignal
      */
     public function created(MedicationSchedule $schedule): void
     {
         $this->syncClinicPatientStatus($schedule);
+        $this->syncOneSignal($schedule);
     }
 
     /**
      * Handle the MedicationSchedule "updated" event.
-     * Saat jadwal obat diubah, auto-sync status pasien
+     * Saat jadwal obat diubah, auto-sync status pasien dan OneSignal
      */
     public function updated(MedicationSchedule $schedule): void
     {
         $this->syncClinicPatientStatus($schedule);
+        $this->syncOneSignal($schedule);
     }
 
     /**
      * Handle the MedicationSchedule "deleted" event.
-     * Saat jadwal obat dihapus, auto-sync status pasien
+     * Saat jadwal obat dihapus, auto-sync status pasien dan OneSignal
      */
     public function deleted(MedicationSchedule $schedule): void
     {
         $this->syncClinicPatientStatus($schedule);
+        $this->syncOneSignalDelete($schedule);
     }
 
     /**
@@ -61,5 +65,23 @@ class MedicationScheduleObserver
         if ($clinicPatient) {
             $clinicPatient->syncStatusWithSchedule();
         }
+    }
+
+    /**
+     * Sinkronisasi jadwal ke OneSignal (create/update)
+     */
+    private function syncOneSignal(MedicationSchedule $schedule): void
+    {
+        $service = new OneSignalSyncService();
+        $service->syncScheduleToOneSignal($schedule);
+    }
+
+    /**
+     * Deactivate jadwal dari OneSignal (delete)
+     */
+    private function syncOneSignalDelete(MedicationSchedule $schedule): void
+    {
+        $service = new OneSignalSyncService();
+        $service->deactivateScheduleFromOneSignal($schedule);
     }
 }

@@ -81,6 +81,16 @@
                         <span>Rekam Medis</span>
                     </a>
 
+                    <!-- Manajemen Jadwal -->
+                    <a href="{{ route('admin.schedules.index') }}"
+                       class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors
+                              {{ request()->routeIs('admin.schedules.*') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Manajemen Jadwal</span>
+                    </a>
+
                     <!-- Tambah Jadwal -->
                     <a href="{{ route('admin.schedules.create') }}" 
                        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors

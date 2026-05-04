@@ -55,13 +55,19 @@ class AdminDashboardController extends Controller
             ? round(($todayConfirmed / $todayTotal) * 100) 
             : 0;
 
+        // Recent medication schedules for quick access on dashboard
+        $recentSchedules = MedicationSchedule::with(['user', 'medicine'])
+            ->latest()
+            ->limit(5)
+            ->get();
         return view('admin.dashboard', compact(
             'stats',
             'recentActivities',
             'recentMedicines',
             'todayConfirmed',
             'todayTotal',
-            'confirmationRate'
+            'confirmationRate',
+            'recentSchedules'
         ));
     }
 }

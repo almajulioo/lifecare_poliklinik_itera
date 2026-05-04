@@ -18,21 +18,53 @@ class AdminMedicationScheduleController extends Controller
     public function index()
     {
         try {
-            $query = MedicationSchedule::with(['user', 'medicine'])
-                ->orderBy('created_at', 'desc');
+            // Check if AJAX request for specific user schedules
+            $userId = request('user_id');
+            $isAjax = request('ajax');
+            
+            if ($isAjax && $userId) {
+                // Return JSON response with schedules for specific user
+                $user = User::with('medicationSchedules.medicine')->find($userId);
+                
+                if (!$user) {
+                    return response()->json(['error' => 'User not found'], 404);
+                }
+                
+                return response()->json([
+                    'user' => $user->only('id', 'name'),
+                    'schedules' => $user->medicationSchedules->map(function ($schedule) {
+                        return [
+                            'id' => $schedule->id,
+                            'time' => $schedule->time,
+                            'start_date' => $schedule->start_date,
+                            'end_date' => $schedule->end_date,
+                            'source' => $schedule->source,
+                            'is_active' => $schedule->is_active,
+                            'medicine' => $schedule->medicine->only('id', 'name', 'dose', 'unit'),
+                        ];
+                    })
+                ]);
+            }
+            
+            // Fetch unique users who have medication schedules
+            $query = User::whereHas('medicationSchedules')
+                ->with(['medicationSchedules.medicine' => function ($q) {
+                    $q->orderBy('created_at', 'desc');
+                }])
+                ->orderBy('name', 'asc');
 
             // Apply search filter if search term provided
             $search = request('search');
             if ($search) {
-                $query->whereHas('user', function ($q) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                       ->orWhere('id', 'like', "%{$search}%");
                 });
             }
 
-            $schedules = $query->paginate(10);
+            $users = $query->paginate(10);
 
-            return view('admin.schedules.index', compact('schedules'));
+            return view('admin.schedules.index', compact('users'));
         } catch (\Exception $e) {
             return redirect()->route('admin.dashboard')
                 ->with('error', 'Gagal memuat jadwal obat: ' . $e->getMessage());
@@ -176,19 +208,30 @@ class AdminMedicationScheduleController extends Controller
     /**
      * Remove the specified medication schedule from storage.
      */
-    public function destroy(MedicationSchedule $schedule)
+    public function destroy(Request $request, MedicationSchedule $schedule)
     {
         try {
             $user = $schedule->user;
             $medicine = $schedule->medicine;
             
             $schedule->delete();
+            
+            $message = "Jadwal obat untuk {$user->name} ({$medicine->name}) berhasil dihapus";
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => true, 'message' => $message], 200);
+            }
 
             return redirect()->route('admin.schedules.index')
-                ->with('success', "Jadwal obat untuk {$user->name} ({$medicine->name}) berhasil dihapus");
+                ->with('success', $message);
         } catch (\Exception $e) {
+            $errorMsg = 'Gagal menghapus jadwal: ' . $e->getMessage();
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $errorMsg], 500);
+            }
+
             return redirect()->route('admin.schedules.index')
-                ->with('error', 'Gagal menghapus jadwal: ' . $e->getMessage());
+                ->with('error', $errorMsg);
         }
     }
 

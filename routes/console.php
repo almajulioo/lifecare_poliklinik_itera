@@ -21,3 +21,11 @@ Schedule::command('medication:send-reminders --check-interval=5')
     ->onFailure(function () {
         \Illuminate\Support\Facades\Log::error('Medication reminders command failed');
     });
+
+// Schedule medication notifications in OneSignal daily at midnight
+Schedule::command('medication:schedule-notifications --days=7')
+    ->dailyAt('00:05')
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::error('Schedule medication notifications command failed');
+    });

@@ -6,7 +6,7 @@
 class NotificationManager {
   constructor() {
     try {
-      this.isSupported = 'Notification' in window && 'serviceWorker' in navigator;
+      // this.isSupported = 'Notification' in window && 'serviceWorker' in navigator;
       this.permission = this.getPermission();
       this.preferences = this.loadPreferences();
       
@@ -63,15 +63,15 @@ class NotificationManager {
       }
       
       // Listen for service worker messages
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.addEventListener('message', (event) => {
-          const { type, payload } = event.data;
+      // if ('serviceWorker' in navigator) {
+      //   navigator.serviceWorker.addEventListener('message', (event) => {
+      //     const { type, payload } = event.data;
           
-          if (type === 'SHOW_NOTIFICATION') {
-            this.handleNotificationFromServiceWorker(payload);
-          }
-        });
-      }
+      //     if (type === 'SHOW_NOTIFICATION') {
+      //       this.handleNotificationFromServiceWorker(payload);
+      //     }
+      //   });
+      // }
     } catch (err) {
       console.warn('[Notification Manager] Error in initUI:', err);
     }

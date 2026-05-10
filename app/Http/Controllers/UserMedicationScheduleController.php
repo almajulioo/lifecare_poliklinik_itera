@@ -52,7 +52,7 @@ class UserMedicationScheduleController extends Controller
     public function store(Request $request)
     {
         try {
-            $user = Auth::user();
+            $user = $request->user();
 
             // Validasi input jadwal obat
             $validated = $request->validate([

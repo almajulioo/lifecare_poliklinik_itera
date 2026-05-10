@@ -66,7 +66,6 @@
                 <select
                     id="prodi"
                     name="prodi"
-                    required
                     class="block w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition bg-white" 
                     style="focus:ring-color: var(--primary-color);"
                 >
@@ -262,9 +261,19 @@
         document.addEventListener('DOMContentLoaded', () => {
             const roleSelect = document.getElementById('role_user');
             const mahasiswaFields = document.getElementById('mahasiswaFields');
+            const prodiSelect = document.getElementById('prodi');
 
             function toggleFields() {
-                mahasiswaFields.style.display = (roleSelect.value === 'mahasiswa') ? 'block' : 'none';
+                const isMahasiswa = roleSelect.value === 'mahasiswa';
+                mahasiswaFields.style.display = isMahasiswa ? 'block' : 'none';
+                
+                // Dinamis add/remove required pada prodi berdasarkan role
+                if (isMahasiswa) {
+                    prodiSelect.setAttribute('required', 'required');
+                } else {
+                    prodiSelect.removeAttribute('required');
+                    prodiSelect.value = ''; // Reset value saat hidden
+                }
             }
 
             roleSelect.addEventListener('change', toggleFields);

@@ -175,7 +175,6 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">NAMA PASIEN</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">KATEGORI</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">STATUS APLIKASI</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">KONTAK</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">STATUS</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">TANGGAL PENDATAAN</th>
@@ -208,19 +207,6 @@
                                     <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
                                         Umum
                                     </span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4">
-                                @if($patient->isAppUser())
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                                        <span class="text-sm font-medium text-gray-700">Menggunakan</span>
-                                    </div>
-                                @else
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-2 h-2 rounded-full bg-gray-400"></span>
-                                        <span class="text-sm font-medium text-gray-700">Tidak</span>
-                                    </div>
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-700">
@@ -276,7 +262,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-8 text-center text-gray-600">
+                            <td colspan="7" class="px-6 py-8 text-center text-gray-600">
                                 Belum ada data pasien
                             </td>
                         </tr>

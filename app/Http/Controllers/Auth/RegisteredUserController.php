@@ -26,10 +26,10 @@ class RegisteredUserController extends Controller
     {
         // Validasi input registrasi termasuk role (mahasiswa/pegawai)
         $request->validate([
-            'role_user' => ['nullable', 'in:mahasiswa,pegawai'],
+            'role_user' => ['required', 'in:mahasiswa,pegawai'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+            'password' => ['required', 'confirmed', 'min:7', \Illuminate\Validation\Rules\Password::defaults()],
             'nim' => ['nullable', 'string', 'max:255'],
             'prodi' => ['nullable', 'string', 'max:255'],
             'age' => ['nullable', 'integer', 'min:1', 'max:150'],
@@ -39,7 +39,7 @@ class RegisteredUserController extends Controller
 
         // Buat user baru dengan data yang tervalidasi
         $user = User::create([
-            'role_user' => $request->role_user ?? 'mahasiswa',
+            'role_user' => $request->role_user,
             'name' => $request->name,
             'email' => $request->email,
             'nim' => $request->nim,

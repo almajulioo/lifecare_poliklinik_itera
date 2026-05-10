@@ -52,14 +52,14 @@ class OfflineDetector {
     this.notifyListeners('online');
     
     // Trigger sync when coming back online
-    if ('serviceWorker' in navigator && 'SyncManager' in window) {
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.sync.register('sync-logs').catch((err) => {
-          console.warn('[Offline Detector] Could not register sync:', err);
-        });
-      });
-    }
-  }
+  //   if ('serviceWorker' in navigator && 'SyncManager' in window) {
+  //     navigator.serviceWorker.ready.then((registration) => {
+  //       registration.sync.register('sync-logs').catch((err) => {
+  //         console.warn('[Offline Detector] Could not register sync:', err);
+  //       });
+  //     });
+  //   }
+  // }
 
   handleOffline() {
     console.log('[Offline Detector] Going offline');

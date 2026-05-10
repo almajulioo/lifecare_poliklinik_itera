@@ -39,7 +39,8 @@ class SendMedicationReminders extends Command
 
         // Get all active users
         $users = User::whereIn('role_user', ['user', 'mahasiswa', 'pegawai', 'pasien', 'patient'])
-            ->get();
+                    ->whereHas('notificationLogs') // Hanya yang pernah dapet notif
+                    ->get();
 
         if ($users->isEmpty()) {
             $this->warn('No users found');
@@ -106,6 +107,7 @@ class SendMedicationReminders extends Command
     private function getFirstReminders(User $user)
     {
         $now = now();
+        $interval = (int) $this->option('check-interval');
 
         $schedules = MedicationSchedule::with(['medicine', 'logs' => function($q) {
                 $q->whereDate('updated_at', today())
@@ -119,9 +121,17 @@ class SendMedicationReminders extends Command
             })
             ->get();
 
-        // Filter: Semua jadwal aktif hari ini yang belum diproses
-        return $schedules->filter(function($schedule) use ($user) {
-            // Filter: belum kirim/jadwalkan notifikasi hari ini
+        return $schedules->filter(function($schedule) use ($user, $now, $interval) {
+            // ✅ FIX 1: Pastikan waktu jadwal sudah lewat tapi tidak terlalu lama
+            [$hour, $minute] = explode(':', $schedule->time);
+            $scheduledTime = Carbon::createFromTime((int)$hour, (int)$minute);
+
+            // Hanya kirim jika dalam window [scheduledTime, scheduledTime + interval)
+            if ($now->lt($scheduledTime) || $now->gte($scheduledTime->copy()->addMinutes($interval))) {
+                return false;
+            }
+
+            // ✅ FIX 2: Cek notif belum pernah dikirim hari ini untuk jadwal ini
             return !NotificationLog::where('user_id', $user->id)
                 ->where('medication_schedule_id', $schedule->id)
                 ->whereDate('scheduled_time', today())

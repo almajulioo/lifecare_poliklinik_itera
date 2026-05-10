@@ -51,20 +51,22 @@ class MedicationReminderNotification extends Notification
     public function toOneSignal(object $notifiable): OneSignalMessage
     {
         $titleAndBody = $this->getTitleAndBody();
-
         $message = OneSignalMessage::create()
             ->setSubject($titleAndBody['title'])
             ->setBody($titleAndBody['body'])
             ->setUrl(url('/app/dashboard'));
 
-        // Handle scheduled notifications
+
         if ($this->sendAfter) {
             try {
                 $sendTime = \Carbon\Carbon::parse($this->sendAfter, 'Asia/Jakarta');
+                // Gunakan format ISO 8601 atau format UTC yang sangat standar
                 $formattedTime = $sendTime->utc()->format('Y-m-d H:i:s \U\T\C');
                 $message->setParameter('send_after', $formattedTime);
+                
+                // TAMBAHKAN INI: Memastikan OneSignal tidak menggunakan segmen default
+                $message->setParameter('isAnyWeb', true); 
             } catch (\Exception $e) {
-                // Silently fail if time parsing fails
             }
         }
 

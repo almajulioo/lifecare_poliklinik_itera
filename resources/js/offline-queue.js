@@ -34,15 +34,15 @@ class OfflineQueue {
     window.addEventListener('online', () => this.onOnline());
     
     // Listen for service worker messages
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        const { type, payload } = event.data;
+    // if ('serviceWorker' in navigator) {
+    //   navigator.serviceWorker.addEventListener('message', (event) => {
+    //     const { type, payload } = event.data;
         
-        if (type === 'SYNC_COMPLETE') {
-          this.handleSyncComplete(payload);
-        }
-      });
-    }
+    //     if (type === 'SYNC_COMPLETE') {
+    //       this.handleSyncComplete(payload);
+    //     }
+    //   });
+    // }
     
     console.log('[Offline Queue] Initialized with retry config:', this.retryConfig);
   }

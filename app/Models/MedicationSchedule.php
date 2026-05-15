@@ -65,6 +65,14 @@ class MedicationSchedule extends Model
     }
 
     /**
+     * Relasi: MedicationSchedule memiliki banyak MedicationNotification
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(MedicationNotification::class, 'medication_schedule_id');
+    }
+
+    /**
      * Scope: Hanya jadwal aktif
      */
     public function scopeActive($query)

@@ -45,7 +45,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/schedules/{schedule}/take', [MedicationLogController::class, 'take'])
             ->name('schedules.take');
-
+        Route::post('/schedules/{schedule}/later', [MedicationLogController::class, 'later'])
+            ->name('schedules.later');
         // Medications list
         Route::get('/medications', [UserMedicineController::class, 'index'])
             ->name('medications.index');

@@ -26,6 +26,13 @@ class MedicationScheduleObserver
     {
         $this->syncClinicPatientStatus($schedule);
         $this->syncOneSignal($schedule);
+
+        // Cek apakah status is_active baru saja diubah, dan nilainya sekarang adalah false
+        if ($schedule->wasChanged('is_active') && $schedule->is_active == false) {
+            $this->syncOneSignalDelete($schedule); // Hapus/deactivate jadwal di OneSignal
+         } else {
+            $this->syncOneSignal($schedule); // Sync normal jika update kolom lain atau is_active diubah ke true
+        }
     }
 
     /**

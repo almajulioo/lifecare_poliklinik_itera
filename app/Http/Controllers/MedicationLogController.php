@@ -10,14 +10,26 @@ use Carbon\Carbon;
 
 class MedicationLogController extends Controller
 {
+
+    public function later(Request $request, MedicationSchedule $schedule)
+    {
+        $schedule->update([
+            'time' => Carbon::now()->addMinutes(5)->format('H:i'),
+        ]);
+
+        return back()->with('success', 'Menunda minum obat selama lima menit.');
+
+    }
+
+
     // Catat obat yang sudah diminum (online & offline)
     public function take(Request $request, MedicationSchedule $schedule)
     {
         $this->authorize('confirmIntake', $schedule);
-
+    
         // Cek apakah request offline atau online
         $offline = $request->input('offline', false);
-        
+
         if ($offline) {
             // Response untuk offline - client akan queue ini
             return response()->json([

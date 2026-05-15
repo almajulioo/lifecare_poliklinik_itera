@@ -169,7 +169,7 @@ class OneSignalSyncService
 
         $payload = [
             'app_id' => config('services.onesignal.app_id'),
-            'included_segments' => ['All'],
+            'include_external_user_ids' => [(string) $user->email],
             'target_channel' => 'push',
             'headings' => ['en' => $heading],
             'contents' => ['en' => $content],
@@ -199,6 +199,11 @@ class OneSignalSyncService
             ])->post(self::ONESIGNAL_API_URL, $payload);
 
             $responseData = $response->json();
+
+            // MedicationNotification::create([
+            //     'medication_schedule_id' => $schedule->id,
+            //     'onesignal_id' => $responseData['id'] ?? null,
+            // ]);
 
             // Debug: Log full response
             Log::debug('OneSignal API response', [

@@ -59,7 +59,7 @@ class OfflineDetector {
   //       });
   //     });
   //   }
-  // }
+  }
 
   handleOffline() {
     console.log('[Offline Detector] Going offline');

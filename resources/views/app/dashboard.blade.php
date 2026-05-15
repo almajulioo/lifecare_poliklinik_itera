@@ -60,9 +60,12 @@
                             ✓ Sudah Minum
                         </button>
                     </form>
-                    <button class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2 px-3 rounded transition" onclick="snoozeReminder(this, {{ $medication->id }})">
-                        Tunda 5 Menit
-                    </button>
+                    <form method="POST" action="{{ route('app.schedules.later', $medication->id) }}" class="flex-1">
+                        @csrf
+                        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2 px-3 rounded transition">
+                            Tunda 5 Menit
+                        </button>
+                    </form>
                 </div>
             </div>
         @endforeach

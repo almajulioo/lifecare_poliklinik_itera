@@ -17,15 +17,7 @@ return new class extends Migration
                 ->constrained('medication_schedules')
                 ->onDelete('cascade');
             $table->string('onesignal_id')->nullable();
-            $table->enum('reminder_type', ['first', 'second']);
-            $table->dateTime('scheduled_at');
-            $table->enum('status', ['pending', 'sent', 'canceled'])->default('pending');
             $table->timestamps();
-
-            // Index untuk query yang sering
-            $table->index('medication_schedule_id');
-            $table->index('status');
-            $table->index('scheduled_at');
         });
     }
 

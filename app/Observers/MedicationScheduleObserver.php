@@ -25,8 +25,6 @@ class MedicationScheduleObserver
     public function updated(MedicationSchedule $schedule): void
     {
         $this->syncClinicPatientStatus($schedule);
-        $this->syncOneSignal($schedule);
-
         // Cek apakah status is_active baru saja diubah, dan nilainya sekarang adalah false
         if ($schedule->wasChanged('is_active') && $schedule->is_active == false) {
             $this->syncOneSignalDelete($schedule); // Hapus/deactivate jadwal di OneSignal

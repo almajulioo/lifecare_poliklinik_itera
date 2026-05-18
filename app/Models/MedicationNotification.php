@@ -21,9 +21,6 @@ class MedicationNotification extends Model
     protected $fillable = [
         'medication_schedule_id',
         'onesignal_id',
-        'reminder_type',
-        'scheduled_at',
-        'status',
     ];
 
     /**

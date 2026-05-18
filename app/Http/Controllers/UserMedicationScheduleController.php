@@ -233,6 +233,30 @@ class UserMedicationScheduleController extends Controller
         }
     }
 
+    public function setNonActive(MedicationSchedule $schedule)
+    {
+        try {
+            $user = Auth::user();
+
+            // Validasi user hanya bisa toggle jadwal miliknya
+            if ($schedule->user_id !== $user->id) {
+                return redirect()->route('app.schedules.index')
+                    ->with('error', 'Anda tidak berhak mengubah jadwal ini.');
+            }
+
+            // Toggle status aktif
+            $schedule->is_active = false;
+            $schedule->save();
+
+            return redirect()->route('app.schedules.upcoming')
+                ->with('success', "Jadwal obat '{$schedule->medicine->name}' berhasil " . ($schedule->is_active ? 'diaktifkan' : 'dinonaktifkan') . ".");
+
+        } catch (\Exception $e) {
+            return redirect()->route('app.schedules.upcoming')
+                ->with('error', 'Gagal mengubah status jadwal: ' . $e->getMessage());
+        }
+    }
+
     // Hapus jadwal obat
     public function destroy(MedicationSchedule $schedule)
     {

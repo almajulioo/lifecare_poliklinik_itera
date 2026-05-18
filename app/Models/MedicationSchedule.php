@@ -124,4 +124,5 @@ class MedicationSchedule extends Model
     {
         return $query->where('source_type', $sourceType);
     }
+
 }

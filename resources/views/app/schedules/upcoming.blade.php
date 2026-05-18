@@ -137,9 +137,9 @@
                                 <a href="{{ route('app.schedules.edit', $schedule) }}" class="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded text-center text-xs font-medium hover:bg-blue-200 transition">
                                     Edit
                                 </a>
-                                <form method="POST" action="{{ route('app.schedules.destroy', $schedule) }}" style="flex: 1;" onsubmit="return confirm('Hapus jadwal?')">
+                                <form method="POST" action="{{ route('app.schedules.set-non-active', $schedule) }}" style="flex: 1;" onsubmit="return confirm('Non-aktifkan jadwal?')">
                                     @csrf
-                                    @method('DELETE')
+                                    @method('PUT')
                                     <button type="submit" class="w-full px-3 py-2 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 transition">
                                         Hapus
                                     </button>

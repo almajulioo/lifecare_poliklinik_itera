@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\MedicationNotification;
 use App\Models\User;
 use App\Models\MedicationSchedule;
 use Carbon\Carbon;
@@ -122,24 +123,76 @@ class OneSignalSyncService
      * OneSignal tidak support cancel scheduled notifications langsung
      * Jadi kita mark sebagai deactivated dan lepas dari OneSignal
      */
+/**
+     * Deactivate notifikasi saat schedule dihapus atau dinonaktifkan.
+     * Membatalkan notifikasi yang sudah terjadwal di OneSignal menggunakan API DELETE.
+     */
     public function deactivateScheduleFromOneSignal(MedicationSchedule $schedule): bool
     {
         try {
-            // OneSignal API tidak support delete scheduled notification
-            // Solusi: set schedule sebagai inactive dan tidak schedule notifikasi baru
-            // Notifikasi yang sudah scheduled akan tetap deliver (sudah dikirim ke OneSignal)
-            
-            Log::info('Schedule deactivated from OneSignal', [
+            $appId = config('services.onesignal.app_id');
+            $apiKey = config('services.onesignal.rest_api_key');
+
+            // Ambil semua notifikasi yang berelasi dengan schedule ini
+            $notifications = $schedule->notifications; 
+
+            if ($notifications->isEmpty()) {
+            Log::info('No scheduled notifications found to cancel', [
+                'schedule_id' => $schedule->id
+            ]);
+            return true;
+            }
+
+            $successCount = 0;
+            $failCount = 0;
+
+            foreach ($notifications as $notification) {
+            $notificationId = $notification->onesignal_id;
+
+            // Lewati jika tidak ada ID OneSignal
+            if (empty($notificationId)) {
+                continue;
+            }
+
+            // API URL untuk membatalkan spesifik notifikasi. Wajib melampirkan query ?app_id=
+            $deleteUrl = self::ONESIGNAL_API_URL . '/' . $notificationId . '?app_id=' . $appId;
+
+            // Kirim request DELETE ke OneSignal
+            $response = Http::timeout(30)->withHeaders([
+                'Authorization' => $apiKey,
+            ])->delete($deleteUrl);
+
+            if ($response->successful()) {
+                $successCount++;
+                // Hapus record dari database lokal karena notifikasi sudah berhasil dibatalkan di server OneSignal
+                $notification->delete();
+            } else {
+                $failCount++;
+                Log::warning('Failed to cancel OneSignal notification', [
+            'schedule_id' => $schedule->id,
+            'notification_id' => $notificationId,
+            'status_code' => $response->status(),
+            'response' => $response->json(),
+                    ]);
+                }
+            }
+
+            Log::info('Schedule deactivated and canceled from OneSignal', [
                 'schedule_id' => $schedule->id,
                 'user_id' => $schedule->user_id,
                 'medicine' => $schedule->medicine->name ?? 'unknown',
+                'successfully_canceled' => $successCount,
+                'failed_to_cancel' => $failCount,
             ]);
 
-            return true;
+            // Mengembalikan true jika setidaknya tidak ada yang gagal dibatalkan (atau berhasil dibatalkan sebagian/seluruhnya tanpa error sistem)
+            return $failCount === 0;
+
         } catch (\Exception $e) {
             Log::error('Error deactivating OneSignal schedule', [
-                'error' => $e->getMessage(),
-                'schedule_id' => $schedule->id,
+            'error' => $e->getMessage(),
+            'schedule_id' => $schedule->id,
+            'trace' => $e->getTraceAsString(),
             ]);
             return false;
         }
@@ -200,10 +253,10 @@ class OneSignalSyncService
 
             $responseData = $response->json();
 
-            // MedicationNotification::create([
-            //     'medication_schedule_id' => $schedule->id,
-            //     'onesignal_id' => $responseData['id'] ?? null,
-            // ]);
+            MedicationNotification::create([
+                'medication_schedule_id' => $schedule->id,
+                'onesignal_id' => $responseData['id'] ?? null,
+            ]);
 
             // Debug: Log full response
             Log::debug('OneSignal API response', [

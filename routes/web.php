@@ -80,6 +80,12 @@ Route::middleware(['auth'])->group(function () {
                 return redirect()->route('app.schedules.upcoming')
                     ->with('error', 'Jadwal tidak ditemukan atau mungkin sudah dihapus.');
             });
+        Route::put('/schedules/{schedule}/non-active', [UserMedicationScheduleController::class, 'setNonActive'])
+            ->name('schedules.set-non-active')
+            ->missing(function () {
+                return redirect()->route('app.schedules.upcoming')
+                    ->with('error', 'Jadwal tidak ditemukan atau mungkin sudah dihapus.');
+            });
         Route::put('/schedules/{schedule}', [UserMedicationScheduleController::class, 'update'])
             ->name('schedules.update')
             ->missing(function () {

@@ -8,7 +8,7 @@
     <!-- Page Header -->
     <div class="flex items-start justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-900">Pemanfaatan Pengingat</h2>
+            <h2 class="text-2xl font-bold text-gray-900">Monitoring Kepatuhan Pasien</h2>
             <p class="text-sm text-gray-600 mt-1">Pantau dan kelola semua pengingat obat secara real-time</p>
         </div>
         <button class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">

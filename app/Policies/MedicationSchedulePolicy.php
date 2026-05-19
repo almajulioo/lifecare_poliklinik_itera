@@ -37,7 +37,7 @@ class MedicationSchedulePolicy
 
         // PATIENT (User) can only view their own schedules
         if ($user instanceof User) {
-            return $schedule->user_id === $user->id;
+            return $schedule->user_id == $user->id;
         }
 
         return false;
@@ -55,11 +55,11 @@ class MedicationSchedulePolicy
 
         // PATIENT cannot modify ADMIN-created schedules - IMPORTANT SECURITY CHECK
         if ($user instanceof User) {
-            if ($schedule->source_type === 'ADMIN' || $schedule->source === 'resep') {
+            if ($schedule->source_type == 'ADMIN' || $schedule->source == 'resep') {
                 return false;
             }
             // PATIENT can only update their own PATIENT schedules
-            return $schedule->user_id === $user->id && $schedule->source_type === 'PATIENT';
+            return $schedule->user_id == $user->id && $schedule->source_type == 'PATIENT';
         }
 
         return false;
@@ -77,11 +77,11 @@ class MedicationSchedulePolicy
 
         // PATIENT cannot delete ADMIN-created schedules - IMPORTANT SECURITY CHECK
         if ($user instanceof User) {
-            if ($schedule->source_type === 'ADMIN' || $schedule->source === 'resep') {
+            if ($schedule->source_type == 'ADMIN' || $schedule->source == 'resep') {
                 return false;
             }
             // PATIENT can only delete their own PATIENT schedules
-            return $schedule->user_id === $user->id && $schedule->source_type === 'PATIENT';
+            return $schedule->user_id == $user->id && $schedule->source_type == 'PATIENT';
         }
 
         return false;
@@ -99,7 +99,7 @@ class MedicationSchedulePolicy
 
         // PATIENT can confirm only their own medication
         if ($user instanceof User) {
-            return $schedule->user_id === $user->id;
+            return $schedule->user_id == $user->id;
         }
 
         return false;

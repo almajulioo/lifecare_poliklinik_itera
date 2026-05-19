@@ -28,7 +28,7 @@ class RiwayatController extends Controller
         }
 
         // Status filter
-        if ($request->filled('status') && $request->status !== 'all') {
+        if ($request->filled('status') && $request->status != 'all') {
             $query->where('status', $request->status);
         }
 

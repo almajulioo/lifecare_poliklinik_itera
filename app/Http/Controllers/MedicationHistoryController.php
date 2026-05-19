@@ -121,20 +121,20 @@ class MedicationHistoryController extends Controller
     {
         $period = CarbonPeriod::create($fromDate, $toDate);
 
-        // Get all schedules for user in period
+        // PERBAIKAN 1: Filter Query Database
         $schedules = MedicationSchedule::where('user_id', $userId)
             ->where('is_active', true)
             ->whereDate('start_date', '<=', $toDate)
-            ->where(function ($q) use ($toDate) {
-                $q->whereNull('end_date')->orWhereDate('end_date', '>=', $toDate);
+            ->where(function ($q) use ($fromDate) { // Ubah $toDate menjadi $fromDate di sini
+                $q->whereNull('end_date')
+                ->orWhereDate('end_date', '>=', $fromDate);
             })
             ->with(['logs' => function($q) use ($fromDate, $toDate) {
                 $q->whereDate('created_at', '>=', $fromDate)
-                  ->whereDate('created_at', '<=', $toDate);
+                ->whereDate('created_at', '<=', $toDate);
             }])
             ->get();
 
-        // Count total expected vs taken per day
         $totalExpected = 0;
         $totalTaken = 0;
         $dayBreakdown = [];
@@ -142,32 +142,40 @@ class MedicationHistoryController extends Controller
         foreach ($period as $date) {
             $dayCount = 0;
             $dayTaken = 0;
+            
+            // Ambil format YYYY-MM-DD agar perbandingan tanggal kebal terhadap masalah zona waktu/jam
+            $dateString = $date->toDateString();
 
             foreach ($schedules as $schedule) {
-                // Check if schedule is active on this date
-                if ($schedule->start_date->lte($date) && 
-                    ($schedule->end_date === null || $schedule->end_date->gte($date))) {
+                // PERBAIKAN 2: Ubah Carbon object menjadi toDateString() sebelum dibandingan
+                // Pastikan 'start_date' dan 'end_date' sudah dimasukkan ke array $casts di model MedicationSchedule!
+                $startDateString = Carbon::parse($schedule->start_date)->toDateString();
+                $endDateString = $schedule->end_date ? Carbon::parse($schedule->end_date)->toDateString() : null;
+
+                // Cek apakah jadwal aktif di tanggal ini
+                if ($startDateString <= $dateString && ($endDateString === null || $endDateString >= $dateString)) {
                     $dayCount++;
 
-                    // Check if taken - using Carbon comparison for collection
-                    $log = $schedule->logs
+                    // Cek apakah obat diminum di tanggal ini
+                    $isTaken = $schedule->logs
                         ->where('status', 'taken')
-                        ->first(function($log) use ($date) {
-                            return $log->created_at->toDateString() === $date->toDateString();
+                        ->contains(function($log) use ($dateString) {
+                            return Carbon::parse($log->created_at)->toDateString() === $dateString;
                         });
 
-                    if ($log) {
+                    if ($isTaken) {
                         $dayTaken++;
                     }
                 }
             }
 
+            // Catat hari ini ke dalam breakdown HANYA JIKA ada jadwal
             if ($dayCount > 0) {
                 $totalExpected += $dayCount;
                 $totalTaken += $dayTaken;
                 
-                $dayBreakdown[$date->toDateString()] = [
-                    'date' => $date->toDateString(),
+                $dayBreakdown[$dateString] = [
+                    'date' => $dateString,
                     'expected' => $dayCount,
                     'taken' => $dayTaken,
                     'compliance' => round(($dayTaken / $dayCount) * 100),
@@ -186,12 +194,11 @@ class MedicationHistoryController extends Controller
             'total_expected' => $totalExpected,
             'total_taken' => $totalTaken,
             'overall_compliance' => $overallCompliance,
-            'perfect_days' => collect($dayBreakdown)->filter(fn($d) => $d['compliance'] === 100)->count(),
-            'zero_days' => collect($dayBreakdown)->filter(fn($d) => $d['taken'] === 0)->count(),
+            'perfect_days' => collect($dayBreakdown)->filter(fn($d) => $d['compliance'] == 100)->count(),
+            'zero_days' => collect($dayBreakdown)->filter(fn($d) => $d['taken'] == 0)->count(),
             'day_breakdown' => $dayBreakdown,
         ];
     }
-
     /**
      * Get daily compliance for chart
      */

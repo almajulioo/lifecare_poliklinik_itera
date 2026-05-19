@@ -48,7 +48,7 @@ class DashboardController extends Controller
         ->filter(function($schedule) {
             // Filter hanya obat yang belum diminum
             $log = $schedule->logs->first();
-            return !$log || $log->status !== 'taken';
+            return !$log || $log->status != 'taken';
         })
         ->values();
 
@@ -68,7 +68,7 @@ class DashboardController extends Controller
         // Hitung compliance: (jumlah diminum / total jadwal) * 100
         $totalToday = $todaySchedules->count();
         $takenToday = $todaySchedules->filter(function($schedule) {
-            return $schedule->logs->first()?->status === 'taken';
+            return $schedule->logs->first()?->status == 'taken';
         })->count();
         $complianceToday = $totalToday > 0 ? round(($takenToday / $totalToday) * 100) : 0;
 
@@ -186,7 +186,7 @@ class DashboardController extends Controller
         ->filter(function($schedule) {
             // Filter hanya obat yang belum diminum
             $log = $schedule->logs->first();
-            return !$log || $log->status !== 'taken';
+            return !$log || $log->status != 'taken';
         })
         ->values();
 
@@ -223,7 +223,7 @@ class DashboardController extends Controller
             ->latest('id')
             ->first();
 
-        if (! $notifLog || $notifLog->status !== 'snoozed' || ! $notifLog->snooze_until) {
+        if (! $notifLog || $notifLog->status != 'snoozed' || ! $notifLog->snooze_until) {
             return false;
         }
 

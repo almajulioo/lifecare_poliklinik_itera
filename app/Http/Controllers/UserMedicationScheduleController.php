@@ -72,7 +72,7 @@ class UserMedicationScheduleController extends Controller
             $validated['is_active'] = true;
 
             // Normalize empty end_date to null
-            if (array_key_exists('end_date', $validated) && $validated['end_date'] === '') {
+            if (array_key_exists('end_date', $validated) && $validated['end_date'] == '') {
                 $validated['end_date'] = null;
             }
 
@@ -141,7 +141,7 @@ class UserMedicationScheduleController extends Controller
             $user = Auth::user();
             
             // Validasi user hanya bisa edit jadwal miliknya
-            if ($schedule->user_id !== $user->id) {
+            if ($schedule->user_id != $user->id) {
                 return redirect()->route('app.schedules.index')
                     ->with('error', 'Anda tidak berhak mengakses jadwal ini.');
             }
@@ -173,7 +173,7 @@ class UserMedicationScheduleController extends Controller
             $user = Auth::user();
 
             // Validasi user hanya bisa update jadwal miliknya
-            if ($schedule->user_id !== $user->id) {
+            if ($schedule->user_id != $user->id) {
                 return redirect()->route('app.schedules.index')
                     ->with('error', 'Anda tidak berhak mengupdate jadwal ini.');
             }
@@ -196,7 +196,7 @@ class UserMedicationScheduleController extends Controller
             $validated['is_active'] = $request->boolean('is_active', $schedule->is_active);
 
             // Normalize empty end_date to null
-            if (array_key_exists('end_date', $validated) && $validated['end_date'] === '') {
+            if (array_key_exists('end_date', $validated) && $validated['end_date'] == '') {
                 $validated['end_date'] = null;
             }
 
@@ -239,7 +239,7 @@ class UserMedicationScheduleController extends Controller
             $user = Auth::user();
 
             // Validasi user hanya bisa toggle jadwal miliknya
-            if ($schedule->user_id !== $user->id) {
+            if ($schedule->user_id != $user->id) {
                 return redirect()->route('app.schedules.index')
                     ->with('error', 'Anda tidak berhak mengubah jadwal ini.');
             }
@@ -264,7 +264,7 @@ class UserMedicationScheduleController extends Controller
             $user = Auth::user();
 
             // Validasi user hanya bisa hapus jadwal miliknya
-            if ($schedule->user_id !== $user->id) {
+            if ($schedule->user_id != $user->id) {
                 return redirect()->route('app.schedules.index')
                     ->with('error', 'Anda tidak berhak menghapus jadwal ini.');
             }

@@ -240,10 +240,10 @@ class AdminMedicationScheduleController extends Controller
      */
     private function checkRequiredData(): ?string
     {
-        if (User::count() === 0) {
+        if (User::count() == 0) {
             return 'Belum ada data User. Silakan tambahkan user terlebih dahulu.';
         }
-        if (Medicine::count() === 0) {
+        if (Medicine::count() == 0) {
             return 'Belum ada data Obat. Silakan tambahkan obat terlebih dahulu.';
         }
         return null;

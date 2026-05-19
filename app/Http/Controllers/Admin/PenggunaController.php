@@ -26,15 +26,15 @@ class PenggunaController extends Controller
         }
 
         // Status filter
-        if ($request->filled('status') && $request->status !== 'all') {
+        if ($request->filled('status') && $request->status != 'all') {
             $query->where('status', $request->status);
         }
 
         // Sort
         $sort = $request->sort ?? 'latest';
-        if ($sort === 'latest') {
+        if ($sort == 'latest') {
             $query->latest();
-        } elseif ($sort === 'oldest') {
+        } elseif ($sort == 'oldest') {
             $query->oldest();
         }
 
@@ -69,7 +69,7 @@ class PenggunaController extends Controller
         ];
 
         // NIM is required only for mahasiswa
-        if ($request->input('role_user') === 'mahasiswa') {
+        if ($request->input('role_user') == 'mahasiswa') {
             $rules['nim'] = 'required|string|unique:users';
             $rules['prodi'] = 'nullable|string';
         } else {
@@ -120,7 +120,7 @@ class PenggunaController extends Controller
         ];
 
         // NIM is required only for mahasiswa
-        if ($request->input('role_user') === 'mahasiswa') {
+        if ($request->input('role_user') == 'mahasiswa') {
             $rules['nim'] = 'required|string|unique:users,nim,' . $user->id;
         } else {
             // Pegawai doesn't need NIM

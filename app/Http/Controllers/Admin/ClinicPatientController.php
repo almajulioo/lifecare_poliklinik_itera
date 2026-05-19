@@ -39,18 +39,18 @@ class ClinicPatientController extends Controller
         }
 
         // Filter by category
-        if ($request->filled('category') && $request->category !== 'all') {
+        if ($request->filled('category') && $request->category != 'all') {
             $query->where('category', $request->category);
         }
 
         // Filter by status
-        if ($request->filled('status') && $request->status !== 'all') {
+        if ($request->filled('status') && $request->status != 'all') {
             $query->where('status', $request->status);
         }
 
         // Filter by app user status
-        if ($request->filled('app_user') && $request->app_user !== 'all') {
-            if ($request->app_user === 'using') {
+        if ($request->filled('app_user') && $request->app_user != 'all') {
+            if ($request->app_user == 'using') {
                 $query->whereNotNull('user_id');
             } else {
                 $query->whereNull('user_id');
@@ -59,9 +59,9 @@ class ClinicPatientController extends Controller
 
         // Sort
         $sort = $request->sort ?? 'latest';
-        if ($sort === 'latest') {
+        if ($sort == 'latest') {
             $query->latest();
-        } elseif ($sort === 'oldest') {
+        } elseif ($sort == 'oldest') {
             $query->oldest();
         }
 
@@ -325,12 +325,12 @@ class ClinicPatientController extends Controller
             $userData = [];
             
             // Sync NIM if provided
-            if ($validated['identity_number'] && $user->nim !== $validated['identity_number']) {
+            if ($validated['identity_number'] && $user->nim != $validated['identity_number']) {
                 $userData['nim'] = $validated['identity_number'];
             }
             
             // Sync email if changed
-            if ($validated['email'] && $user->email !== $validated['email']) {
+            if ($validated['email'] && $user->email != $validated['email']) {
                 $userData['email'] = $validated['email'];
             }
             
@@ -340,12 +340,12 @@ class ClinicPatientController extends Controller
             }
             
             // Sync age if provided
-            if ($age !== null) {
+            if ($age != null) {
                 $userData['age'] = $age;
             }
             
             // Sync gender if provided
-            if ($gender !== null) {
+            if ($gender != null) {
                 $userData['gender'] = $gender;
             }
             
@@ -488,13 +488,13 @@ class ClinicPatientController extends Controller
 
                 // Count patients by category for this date
                 $mahasiswaCount = $patients->filter(function ($patient) use ($date) {
-                    return $patient->category === 'mahasiswa' && 
-                           $patient->created_at->format('Y-m-d') === $date;
+                          return $patient->category == 'mahasiswa' && 
+                              $patient->created_at->format('Y-m-d') == $date;
                 })->count();
 
                 $pegawaiCount = $patients->filter(function ($patient) use ($date) {
-                    return $patient->category === 'pegawai' && 
-                           $patient->created_at->format('Y-m-d') === $date;
+                          return $patient->category == 'pegawai' && 
+                              $patient->created_at->format('Y-m-d') == $date;
                 })->count();
 
                 $dayTotal = $mahasiswaCount + $pegawaiCount;

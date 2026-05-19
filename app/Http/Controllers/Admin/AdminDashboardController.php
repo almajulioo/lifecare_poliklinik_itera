@@ -31,7 +31,7 @@ class AdminDashboardController extends Controller
             ->map(function ($log) {
                 return [
                     'type' => 'reminder',
-                    'message' => $log->schedule->user->name . ' ' . ($log->status === 'taken' ? 'mengkonfirmasi' : 'melewatkan') . ' ' . $log->schedule->medicine->name,
+                    'message' => $log->schedule->user->name . ' ' . ($log->status == 'taken' ? 'mengkonfirmasi' : 'melewatkan') . ' ' . $log->schedule->medicine->name,
                     'time' => $log->created_at,
                     'status' => $log->status,
                 ];

@@ -48,7 +48,7 @@ class MedicinePolicy
 
         // PATIENT (User) can view ADMIN medicines + own medicines
         if ($user instanceof User) {
-            return $medicine->source_type === 'ADMIN' || $medicine->user_id === $user->id;
+            return $medicine->source_type == 'ADMIN' || $medicine->user_id == $user->id;
         }
 
         return false;
@@ -66,11 +66,11 @@ class MedicinePolicy
 
         // PATIENT cannot modify ADMIN medicines - IMPORTANT SECURITY CHECK
         if ($user instanceof User) {
-            if ($medicine->source_type === 'ADMIN') {
+            if ($medicine->source_type == 'ADMIN') {
                 return false;
             }
             // PATIENT can only update their own PATIENT medicines
-            return $medicine->user_id === $user->id && $medicine->source_type === 'PATIENT';
+            return $medicine->user_id == $user->id && $medicine->source_type == 'PATIENT';
         }
 
         return false;
@@ -88,11 +88,11 @@ class MedicinePolicy
 
         // PATIENT cannot delete ADMIN medicines - IMPORTANT SECURITY CHECK
         if ($user instanceof User) {
-            if ($medicine->source_type === 'ADMIN') {
+            if ($medicine->source_type == 'ADMIN') {
                 return false;
             }
             // PATIENT can only delete their own PATIENT medicines
-            return $medicine->user_id === $user->id && $medicine->source_type === 'PATIENT';
+            return $medicine->user_id == $user->id && $medicine->source_type == 'PATIENT';
         }
 
         return false;

@@ -24,9 +24,9 @@ class ObatController extends Controller
 
         // Sort
         $sort = $request->sort ?? 'latest';
-        if ($sort === 'latest') {
+        if ($sort == 'latest') {
             $query->latest();
-        } elseif ($sort === 'oldest') {
+        } elseif ($sort == 'oldest') {
             $query->oldest();
         }
 

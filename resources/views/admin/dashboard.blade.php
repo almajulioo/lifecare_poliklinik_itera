@@ -35,13 +35,13 @@
             @forelse ($recentActivities as $activity)
                 <div class="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-b-0 last:pb-0">
                     <!-- Icon based on status -->
-                    @if ($activity['status'] === 'taken')
+                    @if ($activity['status'] == 'taken')
                         <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                             <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                             </svg>
                         </div>
-                    @elseif ($activity['status'] === 'skipped')
+                    @elseif ($activity['status'] == 'skipped')
                         <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                             <svg class="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />

@@ -110,7 +110,7 @@
                                     $log = $schedule->logs
                                         ->where('status', 'taken')
                                         ->first(function($log) {
-                                            return $log->created_at->toDateString() === now()->toDateString();
+                                            return $log->created_at->toDateString() == now()->toDateString();
                                         });
                                 @endphp
 

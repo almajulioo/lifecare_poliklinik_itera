@@ -47,9 +47,9 @@
                         @endif
                     </div>
                     <div class="ml-2">
-                        @if ($log->status === 'taken')
+                        @if ($log->status == 'taken')
                         <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">✓</span>
-                        @elseif ($log->status === 'skipped')
+                        @elseif ($log->status == 'skipped')
                         <span class="inline-block px-2 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded">✗</span>
                         @else
                         <span class="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">-</span>

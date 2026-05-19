@@ -87,7 +87,7 @@
                 @php
                     $log = $schedule->logs->first();
                     $status = $log?->status ?? 'pending';
-                    $isTaken = $status === 'taken';
+                    $isTaken = $status == 'taken';
                     
                     // Handle old JSON format and new H:i format
                     $timeStr = $schedule->time;

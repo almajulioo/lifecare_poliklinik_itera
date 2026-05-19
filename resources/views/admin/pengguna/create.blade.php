@@ -88,10 +88,10 @@
                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('role_user') border-red-500 @enderror"
                 >
                     <option value="">-- Pilih Role --</option>
-                    <option value="mahasiswa" {{ old('role_user') === 'mahasiswa' ? 'selected' : '' }}>
+                    <option value="mahasiswa" {{ old('role_user') == 'mahasiswa' ? 'selected' : '' }}>
                         Mahasiswa
                     </option>
-                    <option value="pegawai" {{ old('role_user') === 'pegawai' ? 'selected' : '' }}>
+                    <option value="pegawai" {{ old('role_user') == 'pegawai' ? 'selected' : '' }}>
                         Pegawai
                     </option>
                 </select>
@@ -111,47 +111,47 @@
                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('prodi') border-red-500 @enderror"
                 >
                     <option value="">-- Pilih Program Studi --</option>
-                    <option value="Arsitektur" {{ old('prodi') === 'Arsitektur' ? 'selected' : '' }}>Arsitektur</option>
-                    <option value="Arsitektur Lanskap" {{ old('prodi') === 'Arsitektur Lanskap' ? 'selected' : '' }}>Arsitektur Lanskap</option>
-                    <option value="Biologi" {{ old('prodi') === 'Biologi' ? 'selected' : '' }}>Biologi</option>
-                    <option value="Desain Komunikasi Visual" {{ old('prodi') === 'Desain Komunikasi Visual' ? 'selected' : '' }}>Desain Komunikasi Visual</option>
-                    <option value="Farmasi" {{ old('prodi') === 'Farmasi' ? 'selected' : '' }}>Farmasi</option>
-                    <option value="Fisika" {{ old('prodi') === 'Fisika' ? 'selected' : '' }}>Fisika</option>
-                    <option value="Kimia" {{ old('prodi') === 'Kimia' ? 'selected' : '' }}>Kimia</option>
-                    <option value="Matematika" {{ old('prodi') === 'Matematika' ? 'selected' : '' }}>Matematika</option>
-                    <option value="Pariwisata" {{ old('prodi') === 'Pariwisata' ? 'selected' : '' }}>Pariwisata</option>
-                    <option value="Perencanaan Wilayah dan Kota" {{ old('prodi') === 'Perencanaan Wilayah dan Kota' ? 'selected' : '' }}>Perencanaan Wilayah dan Kota</option>
-                    <option value="Rekayasa Instrumentasi dan Automasi" {{ old('prodi') === 'Rekayasa Instrumentasi dan Automasi' ? 'selected' : '' }}>Rekayasa Instrumentasi dan Automasi</option>
-                    <option value="Rekayasa Kebutanan" {{ old('prodi') === 'Rekayasa Kebutanan' ? 'selected' : '' }}>Rekayasa Kebutanan</option>
-                    <option value="Rekayasa Keolahragan" {{ old('prodi') === 'Rekayasa Keolahragan' ? 'selected' : '' }}>Rekayasa Keolahragan</option>
-                    <option value="Rekayasa Kosmetik" {{ old('prodi') === 'Rekayasa Kosmetik' ? 'selected' : '' }}>Rekayasa Kosmetik</option>
-                    <option value="Rekayasa Minyak dan Gas" {{ old('prodi') === 'Rekayasa Minyak dan Gas' ? 'selected' : '' }}>Rekayasa Minyak dan Gas</option>
-                    <option value="Rekayasa Tata Kelola Air Terpadu" {{ old('prodi') === 'Rekayasa Tata Kelola Air Terpadu' ? 'selected' : '' }}>Rekayasa Tata Kelola Air Terpadu</option>
-                    <option value="Sains Aktuaria" {{ old('prodi') === 'Sains Aktuaria' ? 'selected' : '' }}>Sains Aktuaria</option>
-                    <option value="Sains Atmosfir dan Keplanetan" {{ old('prodi') === 'Sains Atmosfir dan Keplanetan' ? 'selected' : '' }}>Sains Atmosfir dan Keplanetan</option>
-                    <option value="Sains Data" {{ old('prodi') === 'Sains Data' ? 'selected' : '' }}>Sains Data</option>
-                    <option value="Sains Lingkungan Kelautan" {{ old('prodi') === 'Sains Lingkungan Kelautan' ? 'selected' : '' }}>Sains Lingkungan Kelautan</option>
-                    <option value="Teknik Biomedis" {{ old('prodi') === 'Teknik Biomedis' ? 'selected' : '' }}>Teknik Biomedis</option>
-                    <option value="Teknik Biosistem" {{ old('prodi') === 'Teknik Biosistem' ? 'selected' : '' }}>Teknik Biosistem</option>
-                    <option value="Teknik Elektro" {{ old('prodi') === 'Teknik Elektro' ? 'selected' : '' }}>Teknik Elektro</option>
-                    <option value="Teknik Fisika" {{ old('prodi') === 'Teknik Fisika' ? 'selected' : '' }}>Teknik Fisika</option>
-                    <option value="Teknik Geofisika" {{ old('prodi') === 'Teknik Geofisika' ? 'selected' : '' }}>Teknik Geofisika</option>
-                    <option value="TEKNIK GEOLOGI" {{ old('prodi') === 'TEKNIK GEOLOGI' ? 'selected' : '' }}>TEKNIK GEOLOGI</option>
-                    <option value="Teknik Geomatika" {{ old('prodi') === 'Teknik Geomatika' ? 'selected' : '' }}>Teknik Geomatika</option>
-                    <option value="Teknik Industri" {{ old('prodi') === 'Teknik Industri' ? 'selected' : '' }}>Teknik Industri</option>
-                    <option value="Teknik Informatika" {{ old('prodi') === 'Teknik Informatika' ? 'selected' : '' }}>Teknik Informatika</option>
-                    <option value="Teknik Kelautan" {{ old('prodi') === 'Teknik Kelautan' ? 'selected' : '' }}>Teknik Kelautan</option>
-                    <option value="Teknik Kimia" {{ old('prodi') === 'Teknik Kimia' ? 'selected' : '' }}>Teknik Kimia</option>
-                    <option value="Teknik Lingkungan" {{ old('prodi') === 'Teknik Lingkungan' ? 'selected' : '' }}>Teknik Lingkungan</option>
-                    <option value="Teknik Material" {{ old('prodi') === 'Teknik Material' ? 'selected' : '' }}>Teknik Material</option>
-                    <option value="Teknik Mesin" {{ old('prodi') === 'Teknik Mesin' ? 'selected' : '' }}>Teknik Mesin</option>
-                    <option value="Teknik Perkeretaapian" {{ old('prodi') === 'Teknik Perkeretaapian' ? 'selected' : '' }}>Teknik Perkeretaapian</option>
-                    <option value="Teknik Pertambangan" {{ old('prodi') === 'Teknik Pertambangan' ? 'selected' : '' }}>Teknik Pertambangan</option>
-                    <option value="Teknik Sipil" {{ old('prodi') === 'Teknik Sipil' ? 'selected' : '' }}>Teknik Sipil</option>
-                    <option value="Teknik Sistem Energi" {{ old('prodi') === 'Teknik Sistem Energi' ? 'selected' : '' }}>Teknik Sistem Energi</option>
-                    <option value="Teknik Telekomunikasi" {{ old('prodi') === 'Teknik Telekomunikasi' ? 'selected' : '' }}>Teknik Telekomunikasi</option>
-                    <option value="Teknologi Industri Pertanian" {{ old('prodi') === 'Teknologi Industri Pertanian' ? 'selected' : '' }}>Teknologi Industri Pertanian</option>
-                    <option value="Teknologi Pangan" {{ old('prodi') === 'Teknologi Pangan' ? 'selected' : '' }}>Teknologi Pangan</option>
+                    <option value="Arsitektur" {{ old('prodi') == 'Arsitektur' ? 'selected' : '' }}>Arsitektur</option>
+                    <option value="Arsitektur Lanskap" {{ old('prodi') == 'Arsitektur Lanskap' ? 'selected' : '' }}>Arsitektur Lanskap</option>
+                    <option value="Biologi" {{ old('prodi') == 'Biologi' ? 'selected' : '' }}>Biologi</option>
+                    <option value="Desain Komunikasi Visual" {{ old('prodi') == 'Desain Komunikasi Visual' ? 'selected' : '' }}>Desain Komunikasi Visual</option>
+                    <option value="Farmasi" {{ old('prodi') == 'Farmasi' ? 'selected' : '' }}>Farmasi</option>
+                    <option value="Fisika" {{ old('prodi') == 'Fisika' ? 'selected' : '' }}>Fisika</option>
+                    <option value="Kimia" {{ old('prodi') == 'Kimia' ? 'selected' : '' }}>Kimia</option>
+                    <option value="Matematika" {{ old('prodi') == 'Matematika' ? 'selected' : '' }}>Matematika</option>
+                    <option value="Pariwisata" {{ old('prodi') == 'Pariwisata' ? 'selected' : '' }}>Pariwisata</option>
+                    <option value="Perencanaan Wilayah dan Kota" {{ old('prodi') == 'Perencanaan Wilayah dan Kota' ? 'selected' : '' }}>Perencanaan Wilayah dan Kota</option>
+                    <option value="Rekayasa Instrumentasi dan Automasi" {{ old('prodi') == 'Rekayasa Instrumentasi dan Automasi' ? 'selected' : '' }}>Rekayasa Instrumentasi dan Automasi</option>
+                    <option value="Rekayasa Kebutanan" {{ old('prodi') == 'Rekayasa Kebutanan' ? 'selected' : '' }}>Rekayasa Kebutanan</option>
+                    <option value="Rekayasa Keolahragan" {{ old('prodi') == 'Rekayasa Keolahragan' ? 'selected' : '' }}>Rekayasa Keolahragan</option>
+                    <option value="Rekayasa Kosmetik" {{ old('prodi') == 'Rekayasa Kosmetik' ? 'selected' : '' }}>Rekayasa Kosmetik</option>
+                    <option value="Rekayasa Minyak dan Gas" {{ old('prodi') == 'Rekayasa Minyak dan Gas' ? 'selected' : '' }}>Rekayasa Minyak dan Gas</option>
+                    <option value="Rekayasa Tata Kelola Air Terpadu" {{ old('prodi') == 'Rekayasa Tata Kelola Air Terpadu' ? 'selected' : '' }}>Rekayasa Tata Kelola Air Terpadu</option>
+                    <option value="Sains Aktuaria" {{ old('prodi') == 'Sains Aktuaria' ? 'selected' : '' }}>Sains Aktuaria</option>
+                    <option value="Sains Atmosfir dan Keplanetan" {{ old('prodi') == 'Sains Atmosfir dan Keplanetan' ? 'selected' : '' }}>Sains Atmosfir dan Keplanetan</option>
+                    <option value="Sains Data" {{ old('prodi') == 'Sains Data' ? 'selected' : '' }}>Sains Data</option>
+                    <option value="Sains Lingkungan Kelautan" {{ old('prodi') == 'Sains Lingkungan Kelautan' ? 'selected' : '' }}>Sains Lingkungan Kelautan</option>
+                    <option value="Teknik Biomedis" {{ old('prodi') == 'Teknik Biomedis' ? 'selected' : '' }}>Teknik Biomedis</option>
+                    <option value="Teknik Biosistem" {{ old('prodi') == 'Teknik Biosistem' ? 'selected' : '' }}>Teknik Biosistem</option>
+                    <option value="Teknik Elektro" {{ old('prodi') == 'Teknik Elektro' ? 'selected' : '' }}>Teknik Elektro</option>
+                    <option value="Teknik Fisika" {{ old('prodi') == 'Teknik Fisika' ? 'selected' : '' }}>Teknik Fisika</option>
+                    <option value="Teknik Geofisika" {{ old('prodi') == 'Teknik Geofisika' ? 'selected' : '' }}>Teknik Geofisika</option>
+                    <option value="TEKNIK GEOLOGI" {{ old('prodi') == 'TEKNIK GEOLOGI' ? 'selected' : '' }}>TEKNIK GEOLOGI</option>
+                    <option value="Teknik Geomatika" {{ old('prodi') == 'Teknik Geomatika' ? 'selected' : '' }}>Teknik Geomatika</option>
+                    <option value="Teknik Industri" {{ old('prodi') == 'Teknik Industri' ? 'selected' : '' }}>Teknik Industri</option>
+                    <option value="Teknik Informatika" {{ old('prodi') == 'Teknik Informatika' ? 'selected' : '' }}>Teknik Informatika</option>
+                    <option value="Teknik Kelautan" {{ old('prodi') == 'Teknik Kelautan' ? 'selected' : '' }}>Teknik Kelautan</option>
+                    <option value="Teknik Kimia" {{ old('prodi') == 'Teknik Kimia' ? 'selected' : '' }}>Teknik Kimia</option>
+                    <option value="Teknik Lingkungan" {{ old('prodi') == 'Teknik Lingkungan' ? 'selected' : '' }}>Teknik Lingkungan</option>
+                    <option value="Teknik Material" {{ old('prodi') == 'Teknik Material' ? 'selected' : '' }}>Teknik Material</option>
+                    <option value="Teknik Mesin" {{ old('prodi') == 'Teknik Mesin' ? 'selected' : '' }}>Teknik Mesin</option>
+                    <option value="Teknik Perkeretaapian" {{ old('prodi') == 'Teknik Perkeretaapian' ? 'selected' : '' }}>Teknik Perkeretaapian</option>
+                    <option value="Teknik Pertambangan" {{ old('prodi') == 'Teknik Pertambangan' ? 'selected' : '' }}>Teknik Pertambangan</option>
+                    <option value="Teknik Sipil" {{ old('prodi') == 'Teknik Sipil' ? 'selected' : '' }}>Teknik Sipil</option>
+                    <option value="Teknik Sistem Energi" {{ old('prodi') == 'Teknik Sistem Energi' ? 'selected' : '' }}>Teknik Sistem Energi</option>
+                    <option value="Teknik Telekomunikasi" {{ old('prodi') == 'Teknik Telekomunikasi' ? 'selected' : '' }}>Teknik Telekomunikasi</option>
+                    <option value="Teknologi Industri Pertanian" {{ old('prodi') == 'Teknologi Industri Pertanian' ? 'selected' : '' }}>Teknologi Industri Pertanian</option>
+                    <option value="Teknologi Pangan" {{ old('prodi') == 'Teknologi Pangan' ? 'selected' : '' }}>Teknologi Pangan</option>
                 </select>
                 @error('prodi')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>

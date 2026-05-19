@@ -28,11 +28,11 @@
             <div>
                 <div class="space-y-2">
                     @foreach($allMedicines as $medicine)
-                        <div class="@if($medicine->user_id === auth()->id() && $medicine->source_type === 'PATIENT') bg-blue-50 border border-blue-200 @else bg-gray-50 border border-gray-300 @endif rounded-lg p-3 flex items-start justify-between">
+                        <div class="@if($medicine->user_id == auth()->id() && $medicine->source_type == 'PATIENT') bg-blue-50 border border-blue-200 @else bg-gray-50 border border-gray-300 @endif rounded-lg p-3 flex items-start justify-between">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2">
                                     <h3 class="font-semibold text-sm text-gray-900">{{ $medicine->name }}</h3>
-                                    @if($medicine->user_id === auth()->id() && $medicine->source_type === 'PATIENT')
+                                    @if($medicine->user_id == auth()->id() && $medicine->source_type == 'PATIENT')
                                         <span class="text-xs bg-blue-200 text-blue-800 px-1.5 py-0.5 rounded">Pribadi</span>
                                     @else
                                         <span class="text-xs bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded">Jadwal</span>
@@ -46,7 +46,7 @@
                                 </p>
                             </div>
                             <div class="flex gap-2 ml-2">
-                                @if($medicine->user_id === auth()->id() && $medicine->source_type === 'PATIENT')
+                                @if($medicine->user_id == auth()->id() && $medicine->source_type == 'PATIENT')
                                     <a href="{{ route('app.medicines.edit', $medicine) }}" class="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition" title="Edit Obat">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>

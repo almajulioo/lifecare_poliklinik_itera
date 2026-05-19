@@ -72,9 +72,9 @@
                         required
                     >
                         <option value="">-- Pilih Kategori --</option>
-                        <option value="mahasiswa" {{ old('category') === 'mahasiswa' ? 'selected' : '' }}>Mahasiswa</option>
-                        <option value="pegawai" {{ old('category') === 'pegawai' ? 'selected' : '' }}>Pegawai</option>
-                        <option value="umum" {{ old('category') === 'umum' ? 'selected' : '' }}>Umum</option>
+                        <option value="mahasiswa" {{ old('category') == 'mahasiswa' ? 'selected' : '' }}>Mahasiswa</option>
+                        <option value="pegawai" {{ old('category') == 'pegawai' ? 'selected' : '' }}>Pegawai</option>
+                        <option value="umum" {{ old('category') == 'umum' ? 'selected' : '' }}>Umum</option>
                     </select>
                     @error('category')
                         <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
@@ -164,8 +164,8 @@
                                    @error('gender') border-red-500 focus:ring-red-500 @enderror"
                         >
                             <option value="">-- Pilih Jenis Kelamin --</option>
-                            <option value="laki-laki" {{ old('gender') === 'laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                            <option value="perempuan" {{ old('gender') === 'perempuan' ? 'selected' : '' }}>Perempuan</option>
+                            <option value="laki-laki" {{ old('gender') == 'laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                            <option value="perempuan" {{ old('gender') == 'perempuan' ? 'selected' : '' }}>Perempuan</option>
                         </select>
                         @error('gender')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
@@ -207,16 +207,16 @@
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="">-- Pilih Program Studi --</option>
-                            <option value="Arsitektur" {{ old('prodi') === 'Arsitektur' ? 'selected' : '' }}>Arsitektur</option>
-                            <option value="Arsitektur Lanskap" {{ old('prodi') === 'Arsitektur Lanskap' ? 'selected' : '' }}>Arsitektur Lanskap</option>
-                            <option value="Biologi" {{ old('prodi') === 'Biologi' ? 'selected' : '' }}>Biologi</option>
-                            <option value="Teknik Informatika" {{ old('prodi') === 'Teknik Informatika' ? 'selected' : '' }}>Teknik Informatika</option>
-                            <option value="Teknik Sipil" {{ old('prodi') === 'Teknik Sipil' ? 'selected' : '' }}>Teknik Sipil</option>
-                            <option value="Teknik Mesin" {{ old('prodi') === 'Teknik Mesin' ? 'selected' : '' }}>Teknik Mesin</option>
-                            <option value="Teknik Elektro" {{ old('prodi') === 'Teknik Elektro' ? 'selected' : '' }}>Teknik Elektro</option>
-                            <option value="Matematika" {{ old('prodi') === 'Matematika' ? 'selected' : '' }}>Matematika</option>
-                            <option value="Fisika" {{ old('prodi') === 'Fisika' ? 'selected' : '' }}>Fisika</option>
-                            <option value="Kimia" {{ old('prodi') === 'Kimia' ? 'selected' : '' }}>Kimia</option>
+                            <option value="Arsitektur" {{ old('prodi') == 'Arsitektur' ? 'selected' : '' }}>Arsitektur</option>
+                            <option value="Arsitektur Lanskap" {{ old('prodi') == 'Arsitektur Lanskap' ? 'selected' : '' }}>Arsitektur Lanskap</option>
+                            <option value="Biologi" {{ old('prodi') == 'Biologi' ? 'selected' : '' }}>Biologi</option>
+                            <option value="Teknik Informatika" {{ old('prodi') == 'Teknik Informatika' ? 'selected' : '' }}>Teknik Informatika</option>
+                            <option value="Teknik Sipil" {{ old('prodi') == 'Teknik Sipil' ? 'selected' : '' }}>Teknik Sipil</option>
+                            <option value="Teknik Mesin" {{ old('prodi') == 'Teknik Mesin' ? 'selected' : '' }}>Teknik Mesin</option>
+                            <option value="Teknik Elektro" {{ old('prodi') == 'Teknik Elektro' ? 'selected' : '' }}>Teknik Elektro</option>
+                            <option value="Matematika" {{ old('prodi') == 'Matematika' ? 'selected' : '' }}>Matematika</option>
+                            <option value="Fisika" {{ old('prodi') == 'Fisika' ? 'selected' : '' }}>Fisika</option>
+                            <option value="Kimia" {{ old('prodi') == 'Kimia' ? 'selected' : '' }}>Kimia</option>
                             <!-- Add more prodi as needed -->
                         </select>
                     </div>
@@ -359,8 +359,8 @@
                         required
                     >
                         <option value="">-- Pilih Status --</option>
-                        <option value="aktif" {{ old('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
-                        <option value="tidak_aktif" {{ old('status') === 'tidak_aktif' ? 'selected' : '' }}>Tidak Aktif</option>
+                        <option value="aktif" {{ old('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                        <option value="tidak_aktif" {{ old('status') == 'tidak_aktif' ? 'selected' : '' }}>Tidak Aktif</option>
                     </select>
                     @error('status')
                         <p class="text-sm text-red-600 mt-1">{{ $message }}</p>

@@ -75,10 +75,10 @@
         />
         <select name="status" class="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 text-sm">
             <option value="all">Status</option>
-            <option value="taken" {{ $status === 'taken' ? 'selected' : '' }}>Diminum</option>
-            <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>Tertunda</option>
-            <option value="delayed" {{ $status === 'delayed' ? 'selected' : '' }}>Terlambat</option>
-            <option value="missed" {{ $status === 'missed' ? 'selected' : '' }}>Terlewat</option>
+            <option value="taken" {{ $status == 'taken' ? 'selected' : '' }}>Diminum</option>
+            <option value="pending" {{ $status == 'pending' ? 'selected' : '' }}>Tertunda</option>
+            <option value="delayed" {{ $status == 'delayed' ? 'selected' : '' }}>Terlambat</option>
+            <option value="missed" {{ $status == 'missed' ? 'selected' : '' }}>Terlewat</option>
         </select>
         <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap">
             Cari
@@ -109,7 +109,7 @@
                                     @php
                                         $times = $log->schedule->time ? explode(',', $log->schedule->time) : [];
                                         $displayTime = count($times) > 0 ? trim($times[0]) : '-';
-                                        if ($displayTime !== '-') {
+                                        if ($displayTime != '-') {
                                             try {
                                                 $displayTime = \Carbon\Carbon::parse($displayTime)->format('H:i');
                                             } catch (\Exception $e) {
@@ -132,13 +132,13 @@
                                     {{ $log->schedule->dosage }} {{ $log->schedule->unit ?? 'mg' }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    @if($log->status === 'taken')
+                                    @if($log->status == 'taken')
                                         <x-admin.badge color="green">Diminum</x-admin.badge>
-                                    @elseif($log->status === 'pending')
+                                    @elseif($log->status == 'pending')
                                         <x-admin.badge color="blue">Tertunda</x-admin.badge>
-                                    @elseif($log->status === 'delayed')
+                                    @elseif($log->status == 'delayed')
                                         <x-admin.badge color="yellow">Terlambat</x-admin.badge>
-                                    @elseif($log->status === 'missed')
+                                    @elseif($log->status == 'missed')
                                         <x-admin.badge color="red">Terlewat</x-admin.badge>
                                     @endif
                                 </td>

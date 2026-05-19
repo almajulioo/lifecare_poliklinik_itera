@@ -68,16 +68,16 @@
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition bg-white"
                 >
                     <option value="">-- Pilih Satuan --</option>
-                    <option value="mg" {{ old('unit') === 'mg' ? 'selected' : '' }}>mg (miligram)</option>
-                    <option value="g" {{ old('unit') === 'g' ? 'selected' : '' }}>g (gram)</option>
-                    <option value="ml" {{ old('unit') === 'ml' ? 'selected' : '' }}>ml (mililiter)</option>
-                    <option value="liter" {{ old('unit') === 'liter' ? 'selected' : '' }}>liter</option>
-                    <option value="tablet" {{ old('unit') === 'tablet' ? 'selected' : '' }}>tablet</option>
-                    <option value="kapsul" {{ old('unit') === 'kapsul' ? 'selected' : '' }}>kapsul</option>
-                    <option value="butir" {{ old('unit') === 'butir' ? 'selected' : '' }}>butir</option>
-                    <option value="tetes" {{ old('unit') === 'tetes' ? 'selected' : '' }}>tetes</option>
-                    <option value="sendok" {{ old('unit') === 'sendok' ? 'selected' : '' }}>sendok</option>
-                    <option value="ampul" {{ old('unit') === 'ampul' ? 'selected' : '' }}>ampul</option>
+                    <option value="mg" {{ old('unit') == 'mg' ? 'selected' : '' }}>mg (miligram)</option>
+                    <option value="g" {{ old('unit') == 'g' ? 'selected' : '' }}>g (gram)</option>
+                    <option value="ml" {{ old('unit') == 'ml' ? 'selected' : '' }}>ml (mililiter)</option>
+                    <option value="liter" {{ old('unit') == 'liter' ? 'selected' : '' }}>liter</option>
+                    <option value="tablet" {{ old('unit') == 'tablet' ? 'selected' : '' }}>tablet</option>
+                    <option value="kapsul" {{ old('unit') == 'kapsul' ? 'selected' : '' }}>kapsul</option>
+                    <option value="butir" {{ old('unit') == 'butir' ? 'selected' : '' }}>butir</option>
+                    <option value="tetes" {{ old('unit') == 'tetes' ? 'selected' : '' }}>tetes</option>
+                    <option value="sendok" {{ old('unit') == 'sendok' ? 'selected' : '' }}>sendok</option>
+                    <option value="ampul" {{ old('unit') == 'ampul' ? 'selected' : '' }}>ampul</option>
                 </select>
                 @error('unit')
                     <p class="text-xs text-red-600 mt-1">{{ $message }}</p>

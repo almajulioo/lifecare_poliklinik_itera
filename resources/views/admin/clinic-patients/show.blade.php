@@ -34,15 +34,15 @@
                 <h3 class="text-xl font-bold text-gray-900">{{ $patient->name }}</h3>
                 <p class="text-sm text-gray-600 mt-1">Nomor Identitas: {{ $patient->identity_number ?? '-' }}</p>
                 <div class="flex gap-2 mt-3 flex-wrap">
-                    @if($patient->category === 'mahasiswa')
+                    @if($patient->category == 'mahasiswa')
                         <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Mahasiswa</span>
-                    @elseif($patient->category === 'pegawai')
+                    @elseif($patient->category == 'pegawai')
                         <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">Pegawai</span>
                     @else
                         <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">Umum</span>
                     @endif
                     
-                    @if($patient->status === 'aktif')
+                    @if($patient->status == 'aktif')
                         <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
                             <span class="w-2 h-2 rounded-full bg-green-500"></span>
                             Aktif
@@ -141,9 +141,9 @@
                         <p class="font-medium text-gray-900">{{ $patient->user->name }}</p>
                         <p class="text-sm text-gray-600">{{ $patient->user->email }}</p>
                         <p class="text-sm text-gray-600">
-                            @if($patient->user->role_user === 'mahasiswa')
+                            @if($patient->user->role_user == 'mahasiswa')
                                 <span class="inline-flex px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700">Mahasiswa</span>
-                            @elseif($patient->user->role_user === 'pegawai')
+                            @elseif($patient->user->role_user == 'pegawai')
                                 <span class="inline-flex px-2 py-1 rounded text-xs font-semibold bg-purple-100 text-purple-700">Pegawai</span>
                             @endif
                         </p>

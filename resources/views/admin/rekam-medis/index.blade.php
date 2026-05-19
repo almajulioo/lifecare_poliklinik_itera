@@ -33,7 +33,7 @@
                 <!-- Patient List -->
                 <div class="space-y-2">
                     @forelse($users as $user)
-                        <a href="?user_id={{ $user->id }}" class="flex items-start gap-3 p-3 rounded-lg transition-colors {{ $selectedUser && $selectedUser->id === $user->id ? 'bg-blue-50 border-l-4 border-blue-600' : 'hover:bg-gray-50' }}">
+                        <a href="?user_id={{ $user->id }}" class="flex items-start gap-3 p-3 rounded-lg transition-colors {{ $selectedUser && $selectedUser->id == $user->id ? 'bg-blue-50 border-l-4 border-blue-600' : 'hover:bg-gray-50' }}">
                             <div class="w-2 h-2 rounded-full {{ $user->medicationSchedules && $user->medicationSchedules->count() > 0 ? 'bg-green-500' : 'bg-yellow-500' }} flex-shrink-0 mt-1"></div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-gray-900 truncate">{{ $user->name }}</p>
@@ -168,9 +168,9 @@
                                         <p class="text-sm font-medium text-gray-900">{{ $log->medicationSchedule?->medicine?->name ?? 'Obat Tidak Ditemukan' }}</p>
                                         <p class="text-xs text-gray-600 mt-1">{{ $log->created_at ? $log->created_at->format('d M Y H:i') : '-' }}</p>
                                     </div>
-                                    @if($log->status === 'taken' || $log->status === 'completed')
+                                    @if($log->status == 'taken' || $log->status == 'completed')
                                         <span class="text-green-600 font-bold text-lg">✓</span>
-                                    @elseif($log->status === 'missed')
+                                    @elseif($log->status == 'missed')
                                         <span class="text-red-600 font-bold text-lg">✕</span>
                                     @else
                                         <span class="text-gray-400 font-bold text-lg">○</span>

@@ -118,9 +118,9 @@
                             name="category"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 bg-white cursor-pointer">
                             <option value="all">Semua Kategori</option>
-                            <option value="mahasiswa" {{ $category === 'mahasiswa' ? 'selected' : '' }}>Mahasiswa</option>
-                            <option value="pegawai" {{ $category === 'pegawai' ? 'selected' : '' }}>Pegawai</option>
-                            <option value="umum" {{ $category === 'umum' ? 'selected' : '' }}>Umum</option>
+                            <option value="mahasiswa" {{ $category == 'mahasiswa' ? 'selected' : '' }}>Mahasiswa</option>
+                            <option value="pegawai" {{ $category == 'pegawai' ? 'selected' : '' }}>Pegawai</option>
+                            <option value="umum" {{ $category == 'umum' ? 'selected' : '' }}>Umum</option>
                         </select>
                     </div>
 
@@ -131,8 +131,8 @@
                             name="app_user"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 bg-white cursor-pointer">
                             <option value="all">Semua Status</option>
-                            <option value="using" {{ $app_user === 'using' ? 'selected' : '' }}>Menggunakan Aplikasi</option>
-                            <option value="not_using" {{ $app_user === 'not_using' ? 'selected' : '' }}>Tidak Menggunakan</option>
+                            <option value="using" {{ $app_user == 'using' ? 'selected' : '' }}>Menggunakan Aplikasi</option>
+                            <option value="not_using" {{ $app_user == 'not_using' ? 'selected' : '' }}>Tidak Menggunakan</option>
                         </select>
                     </div>
 
@@ -143,8 +143,8 @@
                             name="status"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 bg-white cursor-pointer">
                             <option value="all">Semua Status</option>
-                            <option value="aktif" {{ $status === 'aktif' ? 'selected' : '' }}>Aktif</option>
-                            <option value="tidak_aktif" {{ $status === 'tidak_aktif' ? 'selected' : '' }}>Tidak Aktif</option>
+                            <option value="aktif" {{ $status == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                            <option value="tidak_aktif" {{ $status == 'tidak_aktif' ? 'selected' : '' }}>Tidak Aktif</option>
                         </select>
                     </div>
                 </div>
@@ -195,11 +195,11 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4">
-                                @if($patient->category === 'mahasiswa')
+                                @if($patient->category == 'mahasiswa')
                                     <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
                                         Mahasiswa
                                     </span>
-                                @elseif($patient->category === 'pegawai')
+                                @elseif($patient->category == 'pegawai')
                                     <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
                                         Pegawai
                                     </span>
@@ -220,7 +220,7 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4">
-                                @if($patient->status === 'aktif')
+                                @if($patient->status == 'aktif')
                                     <span class="inline-flex items-center gap-2 text-sm font-medium">
                                         <span class="w-2 h-2 rounded-full bg-green-500"></span>
                                         Aktif

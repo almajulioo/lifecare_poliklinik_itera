@@ -33,9 +33,9 @@
             <div class="border-b pb-3">
                 <p class="text-xs text-slate-500 font-semibold uppercase tracking-wide">Status</p>
                 <p class="text-sm font-medium text-slate-900 mt-1">
-                    @if(auth()->user()->role_user === 'mahasiswa')
+                    @if(auth()->user()->role_user == 'mahasiswa')
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Mahasiswa</span>
-                    @elseif(auth()->user()->role_user === 'pegawai')
+                    @elseif(auth()->user()->role_user == 'pegawai')
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Pegawai</span>
                     @else
                         {{ auth()->user()->role_user }}
@@ -69,9 +69,9 @@
                 <div>
                     <p class="text-xs text-slate-500 font-semibold uppercase tracking-wide">Jenis Kelamin</p>
                     <p class="text-sm font-medium text-slate-900 mt-1">
-                        @if(auth()->user()->gender === 'laki-laki')
+                        @if(auth()->user()->gender == 'laki-laki')
                             Laki-laki
-                        @elseif(auth()->user()->gender === 'perempuan')
+                        @elseif(auth()->user()->gender == 'perempuan')
                             Perempuan
                         @else
                             {{ auth()->user()->gender }}

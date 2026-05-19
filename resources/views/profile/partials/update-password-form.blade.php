@@ -34,7 +34,7 @@
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 
-            @if (session('status') === 'password-updated')
+            @if (session('status') == 'password-updated')
                 <p
                     x-data="{ show: true }"
                     x-show="show"

@@ -95,9 +95,9 @@
                         required
                     >
                         <option value="">-- Pilih Kategori --</option>
-                        <option value="mahasiswa" {{ old('category', $patient->category) === 'mahasiswa' ? 'selected' : '' }}>Mahasiswa</option>
-                        <option value="pegawai" {{ old('category', $patient->category) === 'pegawai' ? 'selected' : '' }}>Pegawai</option>
-                        <option value="umum" {{ old('category', $patient->category) === 'umum' ? 'selected' : '' }}>Umum</option>
+                        <option value="mahasiswa" {{ old('category', $patient->category) == 'mahasiswa' ? 'selected' : '' }}>Mahasiswa</option>
+                        <option value="pegawai" {{ old('category', $patient->category) == 'pegawai' ? 'selected' : '' }}>Pegawai</option>
+                        <option value="umum" {{ old('category', $patient->category) == 'umum' ? 'selected' : '' }}>Umum</option>
                     </select>
                     @error('category')
                         <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
@@ -187,8 +187,8 @@
                                    @error('gender') border-red-500 focus:ring-red-500 @enderror"
                         >
                             <option value="">-- Pilih Jenis Kelamin --</option>
-                            <option value="laki-laki" {{ old('gender', $gender) === 'laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                            <option value="perempuan" {{ old('gender', $gender) === 'perempuan' ? 'selected' : '' }}>Perempuan</option>
+                            <option value="laki-laki" {{ old('gender', $gender) == 'laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                            <option value="perempuan" {{ old('gender', $gender) == 'perempuan' ? 'selected' : '' }}>Perempuan</option>
                         </select>
                         @error('gender')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
@@ -208,7 +208,7 @@
                         Kondisi Medis
                     </label>
                     <div id="medicalConditionsContainer" class="space-y-3">
-                        @if(old('medical_conditions') !== null)
+                        @if(old('medical_conditions') != null)
                             @foreach(old('medical_conditions') as $index => $condition)
                                 <div class="flex gap-2 items-start medical-condition-item">
                                     <input 

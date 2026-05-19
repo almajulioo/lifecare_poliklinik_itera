@@ -71,14 +71,14 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Satuan</label>
                     <select name="unit" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">-- Pilih Satuan --</option>
-                        <option value="mg" {{ $medicine->unit === 'mg' ? 'selected' : '' }}>mg (Miligram)</option>
-                        <option value="g" {{ $medicine->unit === 'g' ? 'selected' : '' }}>g (Gram)</option>
-                        <option value="ml" {{ $medicine->unit === 'ml' ? 'selected' : '' }}>ml (Mililiter)</option>
-                        <option value="tablet" {{ $medicine->unit === 'tablet' ? 'selected' : '' }}>Tablet</option>
-                        <option value="kapsula" {{ $medicine->unit === 'kapsula' ? 'selected' : '' }}>Kapsul</option>
-                        <option value="botol" {{ $medicine->unit === 'botol' ? 'selected' : '' }}>Botol</option>
-                        <option value="sachet" {{ $medicine->unit === 'sachet' ? 'selected' : '' }}>Sachet</option>
-                        <option value="strip" {{ $medicine->unit === 'strip' ? 'selected' : '' }}>Strip</option>
+                        <option value="mg" {{ $medicine->unit == 'mg' ? 'selected' : '' }}>mg (Miligram)</option>
+                        <option value="g" {{ $medicine->unit == 'g' ? 'selected' : '' }}>g (Gram)</option>
+                        <option value="ml" {{ $medicine->unit == 'ml' ? 'selected' : '' }}>ml (Mililiter)</option>
+                        <option value="tablet" {{ $medicine->unit == 'tablet' ? 'selected' : '' }}>Tablet</option>
+                        <option value="kapsula" {{ $medicine->unit == 'kapsula' ? 'selected' : '' }}>Kapsul</option>
+                        <option value="botol" {{ $medicine->unit == 'botol' ? 'selected' : '' }}>Botol</option>
+                        <option value="sachet" {{ $medicine->unit == 'sachet' ? 'selected' : '' }}>Sachet</option>
+                        <option value="strip" {{ $medicine->unit == 'strip' ? 'selected' : '' }}>Strip</option>
                     </select>
                     @error('unit')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

@@ -64,11 +64,11 @@
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-700">{{ $user->email }}</td>
                             <td class="px-6 py-4">
-                                @if($user->role_user === 'mahasiswa')
+                                @if($user->role_user == 'mahasiswa')
                                     <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
                                         Mahasiswa
                                     </span>
-                                @elseif($user->role_user === 'pegawai')
+                                @elseif($user->role_user == 'pegawai')
                                     <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
                                         Pegawai
                                     </span>

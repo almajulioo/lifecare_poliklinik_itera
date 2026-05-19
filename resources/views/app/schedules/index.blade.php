@@ -89,8 +89,8 @@
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
                                 <p class="font-semibold text-gray-900">{{ $schedule->medicine->name }}</p>
-                                <span class="px-2 py-0.5 rounded text-xs font-semibold {{ $schedule->source_type === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
-                                    {{ $schedule->source_type === 'ADMIN' ? 'Dari Admin' : 'Pribadi' }}
+                                <span class="px-2 py-0.5 rounded text-xs font-semibold {{ $schedule->source_type == 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
+                                    {{ $schedule->source_type == 'ADMIN' ? 'Dari Admin' : 'Pribadi' }}
                                 </span>
                             </div>
                             <p class="text-xs text-gray-500 mt-1">{{ $schedule->medicine->dose }} {{ $schedule->medicine->unit }}</p>
@@ -105,7 +105,7 @@
                             <p class="font-medium">
                                 @php
                                     $timeDisplay = $schedule->time;
-                                    if (strpos($timeDisplay, ':') !== false) {
+                                    if (strpos($timeDisplay, ':') != false) {
                                         $timeDisplay = substr($timeDisplay, 0, 5);
                                     }
                                 @endphp
